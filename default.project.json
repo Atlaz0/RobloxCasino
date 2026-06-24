@@ -1,0 +1,63 @@
+{
+  "name": "CasinoEmpireTycoon",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      }
+    },
+
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+
+    "StarterGui": {
+      "$path": "src/gui"
+    },
+
+    "Workspace": {
+      "$properties": {
+        "FilteringEnabled": true
+      },
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Color": [0.15, 0.12, 0.10],
+          "Locked": true,
+          "Position": [0, -10, 0],
+          "Size": [1024, 20, 1024]
+        }
+      }
+    },
+
+    "Lighting": {
+      "$properties": {
+        "Ambient": [0.05, 0.02, 0.08],
+        "Brightness": 1.5,
+        "GlobalShadows": true,
+        "Outlines": false,
+        "Technology": "Future",
+        "FogEnd": 1000
+      }
+    },
+
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}
