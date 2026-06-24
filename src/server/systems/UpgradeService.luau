@@ -1,9 +1,10 @@
 local Players = game:GetService("Players")
 
+local Shared         = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local DataManager    = require(script.Parent.Parent.data.DataManager)
-local MachineData    = require(game.ReplicatedStorage.Shared.constants.MachineData)
+local MachineData    = require(Shared.constants.MachineData)
 local EconomyService = require(script.Parent.Parent.economy.EconomyService)
-local Remotes        = require(game.ReplicatedStorage.Shared.net.Remotes)
+local Remotes        = require(Shared.net.Remotes)
 
 -- upgradeId format: "SlotMachine:0"  (machineId + colon + index in machines array)
 local function upgradeMachine(player: Player, upgradeId: string): (boolean, string?)
@@ -39,7 +40,7 @@ local function getUpgradeCost(machineId: string, currentLevel: number): number
 end
 
 local function init()
-	Remotes.RequestUpgrade:Connect(function(player, upgradeId)
+	Remotes.RequestUpgrade.OnServerEvent:Connect(function(player, upgradeId)
 		if type(upgradeId) ~= "string" then return end
 		local ok, reason = upgradeMachine(player, upgradeId)
 		Remotes.UpgradeResult:FireClient(player, ok, reason)

@@ -1,8 +1,12 @@
-local Players      = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local Players           = game:GetService("Players")
+local TweenService      = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Remotes      = require(game.ReplicatedStorage.Shared.net.Remotes)
-local FormatNumber = require(game.ReplicatedStorage.Shared.utils.FormatNumber)
+-- Wait for server to create Remotes before requiring anything
+ReplicatedStorage:WaitForChild("Remotes", 15)
+
+local Remotes      = require(ReplicatedStorage:WaitForChild("Shared").net.Remotes)
+local FormatNumber = require(ReplicatedStorage:WaitForChild("Shared").utils.FormatNumber)
 
 -- Build ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -74,11 +78,11 @@ local function pulseChips()
 	tween:Play()
 end
 
-Remotes.ChipsUpdated:Connect(function(total: number)
+Remotes.ChipsUpdated.OnClientEvent:Connect(function(total: number)
 	chipsLabel.Text = FormatNumber.format(total) .. " chips"
 	pulseChips()
 end)
 
-Remotes.IncomeRateUpdated:Connect(function(perSecond: number)
+Remotes.IncomeRateUpdated.OnClientEvent:Connect(function(perSecond: number)
 	incomeLabel.Text = "+" .. FormatNumber.format(perSecond) .. "/s"
 end)

@@ -1,9 +1,10 @@
 local Players = game:GetService("Players")
 
+local Shared       = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local DataManager  = require(script.Parent.Parent.data.DataManager)
-local MachineData  = require(game.ReplicatedStorage.Shared.constants.MachineData)
-local GameConfig   = require(game.ReplicatedStorage.Shared.constants.GameConfig)
-local Remotes      = require(game.ReplicatedStorage.Shared.net.Remotes)
+local MachineData  = require(Shared.constants.MachineData)
+local GameConfig   = require(Shared.constants.GameConfig)
+local Remotes      = require(Shared.net.Remotes)
 
 local function getActiveBoostMultiplier(profile): number
 	local now = os.time()

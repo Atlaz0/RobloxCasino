@@ -2,8 +2,10 @@ local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local ProfileTypes = require(game.ReplicatedStorage.Shared.types.ProfileTypes)
-local GameConfig   = require(game.ReplicatedStorage.Shared.constants.GameConfig)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared       = ReplicatedStorage:WaitForChild("Shared")
+local ProfileTypes = require(Shared.types.ProfileTypes)
+local GameConfig   = require(Shared.constants.GameConfig)
 
 local DATASTORE_KEY_PREFIX = "Player_v1_"
 local AUTO_SAVE_INTERVAL   = 60 -- seconds

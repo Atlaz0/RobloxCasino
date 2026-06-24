@@ -1,11 +1,12 @@
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 
-local DataManager  = require(script.Parent.Parent.data.DataManager)
-local MachineData  = require(game.ReplicatedStorage.Shared.constants.MachineData)
-local GameConfig   = require(game.ReplicatedStorage.Shared.constants.GameConfig)
+local Shared       = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local DataManager    = require(script.Parent.Parent.data.DataManager)
+local MachineData    = require(Shared.constants.MachineData)
+local GameConfig     = require(Shared.constants.GameConfig)
 local EconomyService = require(script.Parent.Parent.economy.EconomyService)
-local Remotes      = require(game.ReplicatedStorage.Shared.net.Remotes)
+local Remotes        = require(Shared.net.Remotes)
 
 local lotFolder: Folder
 
@@ -75,7 +76,7 @@ local function placeMachine(player: Player, machineId: string, cf: CFrame): (boo
 end
 
 local function init()
-	Remotes.RequestPlace:Connect(function(player, machineId, cf)
+	Remotes.RequestPlace.OnServerEvent:Connect(function(player, machineId, cf)
 		-- basic type guards
 		if type(machineId) ~= "string" then return end
 		if typeof(cf) ~= "CFrame" then return end

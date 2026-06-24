@@ -2,8 +2,9 @@ local Players        = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService     = game:GetService("RunService")
 
-local Remotes    = require(game.ReplicatedStorage.Shared.net.Remotes)
-local MachineData = require(game.ReplicatedStorage.Shared.constants.MachineData)
+local Shared      = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Remotes     = require(Shared.net.Remotes)
+local MachineData = require(Shared.constants.MachineData)
 
 local camera = workspace.CurrentCamera
 local mouse  = Players.LocalPlayer:GetMouse()
@@ -84,7 +85,7 @@ local function init()
 		end
 	end)
 
-	Remotes.PlacementResult:Connect(function(success: boolean, reason: string?)
+	Remotes.PlacementResult.OnClientEvent:Connect(function(success: boolean, reason: string?)
 		if not success then
 			warn("Placement failed:", reason)
 			-- TODO: show UI toast

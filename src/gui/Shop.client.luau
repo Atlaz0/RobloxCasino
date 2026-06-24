@@ -1,9 +1,16 @@
-local Players      = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local Players           = game:GetService("Players")
+local TweenService      = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local MachineData         = require(game.ReplicatedStorage.Shared.constants.MachineData)
-local FormatNumber        = require(game.ReplicatedStorage.Shared.utils.FormatNumber)
-local PlacementController = require(Players.LocalPlayer.PlayerScripts.Client.controllers.PlacementController)
+-- Wait for server to create Remotes before requiring anything
+ReplicatedStorage:WaitForChild("Remotes", 15)
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local MachineData  = require(Shared.constants.MachineData)
+local FormatNumber = require(Shared.utils.FormatNumber)
+
+local Client = Players.LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("Client")
+local PlacementController = require(Client.controllers.PlacementController)
 
 -- Sort machines by phase then cost
 local sortedMachines = {}

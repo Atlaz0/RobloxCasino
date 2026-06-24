@@ -2,6 +2,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 ReplicatedStorage:WaitForChild("Remotes", 15)
 
-local PlacementController = require(script.Parent.controllers.PlacementController)
+local PlacementController = require(script.controllers.PlacementController)
 
 PlacementController.init()

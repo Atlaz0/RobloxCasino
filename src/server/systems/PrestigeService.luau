@@ -1,9 +1,10 @@
 local Players = game:GetService("Players")
 
+local Shared         = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local DataManager    = require(script.Parent.Parent.data.DataManager)
-local GameConfig     = require(game.ReplicatedStorage.Shared.constants.GameConfig)
-local ProfileTypes   = require(game.ReplicatedStorage.Shared.types.ProfileTypes)
-local Remotes        = require(game.ReplicatedStorage.Shared.net.Remotes)
+local GameConfig     = require(Shared.constants.GameConfig)
+local ProfileTypes   = require(Shared.types.ProfileTypes)
+local Remotes        = require(Shared.net.Remotes)
 
 local MIN_PHASE_FOR_PRESTIGE = 3
 
@@ -48,7 +49,7 @@ local function prestige(player: Player): (boolean, string?)
 end
 
 local function init()
-	Remotes.RequestPrestige:Connect(function(player)
+	Remotes.RequestPrestige.OnServerEvent:Connect(function(player)
 		local ok, reason = prestige(player)
 		Remotes.PrestigeResult:FireClient(player, ok, reason)
 	end)

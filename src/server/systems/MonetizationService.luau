@@ -2,9 +2,10 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local PolicyService      = game:GetService("PolicyService")
 local Players            = game:GetService("Players")
 
+local Shared      = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local DataManager = require(script.Parent.Parent.data.DataManager)
-local GameConfig  = require(game.ReplicatedStorage.Shared.constants.GameConfig)
-local Remotes     = require(game.ReplicatedStorage.Shared.net.Remotes)
+local GameConfig  = require(Shared.constants.GameConfig)
+local Remotes     = require(Shared.net.Remotes)
 
 -- Gamepass ownership cache (avoid repeated API calls per session)
 local passCache: { [number]: { [number]: boolean } } = {}
