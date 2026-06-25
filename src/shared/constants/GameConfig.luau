@@ -1,5 +1,33 @@
 local GameConfig = {}
 
+-- World layout (shared so roads, plots, and placement all agree on geometry)
+GameConfig.WORLD = {
+	GROUND_TOP_Y  = 0,    -- world Y of the grass surface
+	PLAZA_TOP_Y   = 1,    -- world Y of the raised stone plaza/road surface
+	PLAZA_RADIUS  = 70,   -- central spawn plaza radius
+	ROAD_WIDTH    = 44,   -- width of each of the 4 roads
+	ROAD_LENGTH   = 280,  -- length of each road from plaza edge to its plot
+	PLOT_SIZE     = 150,  -- side length of each square tycoon plot
+	PLOT_COUNT    = 4,    -- one plot at the end of each road (+X, -X, +Z, -Z)
+}
+
+-- Center distance from world origin to each plot center.
+function GameConfig.plotCenterDistance(): number
+	local W = GameConfig.WORLD
+	return W.PLAZA_RADIUS + W.ROAD_LENGTH + W.PLOT_SIZE / 2
+end
+
+-- Unit direction (Vector3 on the XZ plane) for plot index 1..4.
+function GameConfig.plotDirection(index: number): Vector3
+	local dirs = {
+		Vector3.new(1, 0, 0),
+		Vector3.new(-1, 0, 0),
+		Vector3.new(0, 0, 1),
+		Vector3.new(0, 0, -1),
+	}
+	return dirs[index] or dirs[1]
+end
+
 -- Economy
 GameConfig.PASSIVE_INCOME_INTERVAL = 1        -- seconds between income ticks
 GameConfig.STARTING_CHIPS           = 100
@@ -15,6 +43,21 @@ GameConfig.LEADERBOARD_SIZE            = 10
 
 -- Rival challenge
 GameConfig.RIVAL_DURATION = 600               -- 10 minutes in seconds
+
+-- Daily reward (claimable once per 24h; streak grows on consecutive days)
+GameConfig.DAILY_REWARD = {
+	COOLDOWN            = 24 * 60 * 60, -- seconds before the reward can be claimed again
+	STREAK_RESET_WINDOW = 48 * 60 * 60, -- claim within this window to keep the streak; else it resets
+	BASE_CHIPS          = 1000,         -- day-1 reward
+	STREAK_BONUS_CHIPS  = 750,          -- added per consecutive day
+	MAX_STREAK          = 7,            -- streak (and bonus) caps here
+}
+
+-- Reward amount for a given streak day (day 1 = streak 1).
+function GameConfig.dailyRewardForStreak(streak: number): number
+	local capped = math.clamp(streak, 1, GameConfig.DAILY_REWARD.MAX_STREAK)
+	return GameConfig.DAILY_REWARD.BASE_CHIPS + (capped - 1) * GameConfig.DAILY_REWARD.STREAK_BONUS_CHIPS
+end
 
 -- Daily bonus wheel
 GameConfig.BONUS_WHEEL_BASE_REWARDS = {

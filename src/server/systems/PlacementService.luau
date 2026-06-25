@@ -1,6 +1,3 @@
-local Players = game:GetService("Players")
-local ServerStorage = game:GetService("ServerStorage")
-
 local Shared       = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local DataManager    = require(script.Parent.Parent.data.DataManager)
 local MachineData    = require(Shared.constants.MachineData)
@@ -8,34 +5,15 @@ local GameConfig     = require(Shared.constants.GameConfig)
 local EconomyService = require(script.Parent.Parent.economy.EconomyService)
 local Remotes        = require(Shared.net.Remotes)
 
-local lotFolder: Folder
-
-local function getLotFolder(): Folder
-	if lotFolder then return lotFolder end
-	lotFolder = workspace:FindFirstChild("Lots") or (function()
-		local f = Instance.new("Folder")
-		f.Name = "Lots"
-		f.Parent = workspace
-		return f
-	end)()
-	return lotFolder
-end
-
-local function getPlayerFolder(player: Player): Folder
-	local lots = getLotFolder()
-	local existing = lots:FindFirstChild(tostring(player.UserId))
-	if existing then return existing :: Folder end
-	local f = Instance.new("Folder")
-	f.Name = tostring(player.UserId)
-	f.Parent = lots
-	return f
-end
+local PlotService    = require(script.Parent.PlotService)
+local MachineModel   = require(script.Parent.MachineModel)
 
 local function countMachines(profile): number
 	return #profile.machines
 end
 
-local function placeMachine(player: Player, machineId: string, cf: CFrame): (boolean, string?)
+-- worldCF is where the player clicked on their plot (from the client ghost).
+local function placeMachine(player: Player, machineId: string, worldCF: CFrame): (boolean, string?)
 	local profile = DataManager.get(player)
 	if not profile then return false, "Profile not loaded" end
 
@@ -44,6 +22,17 @@ local function placeMachine(player: Player, machineId: string, cf: CFrame): (boo
 
 	if def.phase > profile.phase then
 		return false, "Not unlocked yet"
+	end
+
+	local plot = PlotService.getPlayerPlot(player)
+	if not plot then
+		return false, "Claim a plot first"
+	end
+
+	-- Must be placed within the player's plot square.
+	local pos = worldCF.Position
+	if math.abs(pos.X - plot.center.X) > plot.halfSize or math.abs(pos.Z - plot.center.Z) > plot.halfSize then
+		return false, "Place it on your plot"
 	end
 
 	local limit = GameConfig.MAX_LOT_MACHINES + (profile.hasExtraLot and 25 or 0)
@@ -55,20 +44,18 @@ local function placeMachine(player: Player, machineId: string, cf: CFrame): (boo
 		return false, "Not enough chips"
 	end
 
-	-- Spawn model in workspace
-	local models = ServerStorage:FindFirstChild("Models")
-	local template = models and models:FindFirstChild(def.modelName)
-	if template then
-		local clone = template:Clone()
-		clone:SetPrimaryPartCFrame(cf)
-		clone.Name = machineId .. "_" .. player.UserId
-		clone.Parent = getPlayerFolder(player)
-	end
+	-- Snap the machine to the plot surface and build a visible model.
+	local baseCF = CFrame.new(pos.X, plot.topY + 0.5, pos.Z)
+	local model = MachineModel.build(def, baseCF)
+	model.Parent = plot.machinesFolder
 
+	-- Store the position RELATIVE to the plot so it can be rebuilt on whatever plot the
+	-- player claims next session.
+	local relativeCF = plot.plotCF:ToObjectSpace(baseCF)
 	table.insert(profile.machines, {
 		id = machineId,
 		level = 1,
-		cf = cf,
+		cf = relativeCF,
 	})
 	DataManager.markDirty(player)
 
@@ -77,7 +64,6 @@ end
 
 local function init()
 	Remotes.RequestPlace.OnServerEvent:Connect(function(player, machineId, cf)
-		-- basic type guards
 		if type(machineId) ~= "string" then return end
 		if typeof(cf) ~= "CFrame" then return end
 

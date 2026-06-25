@@ -41,6 +41,9 @@ return {
 	RequestPlace       = Event("RequestPlace"),       -- client → server: (machineId: string, cf: CFrame)
 	PlacementResult    = Event("PlacementResult"),    -- server → client: (success: bool, reason: string?)
 
+	-- Plots
+	PlotAssigned       = Event("PlotAssigned"),       -- server → client: ({ claimed, center?, halfSize?, topY? })
+
 	-- Upgrades
 	RequestUpgrade     = Event("RequestUpgrade"),     -- client → server: (upgradeId: string)
 	UpgradeResult      = Event("UpgradeResult"),      -- server → client: (success: bool, reason: string?)
@@ -51,6 +54,11 @@ return {
 
 	-- Leaderboard
 	LeaderboardUpdated = Event("LeaderboardUpdated"), -- server → all clients: (data: {})
+
+	-- Daily reward
+	RequestDailyReward = Func("RequestDailyReward"),  -- client → server: () → { success, reward?, reason?, status }
+	RequestDailyStatus = Func("RequestDailyStatus"),  -- client → server: () → status (pull current status on load)
+	DailyRewardStatus  = Event("DailyRewardStatus"),  -- server → client: (status: { canClaim, secondsRemaining, streak, nextReward })
 
 	-- Monetization
 	RequestLootCase    = Func("RequestLootCase"),     -- client → server: (caseId) → result
