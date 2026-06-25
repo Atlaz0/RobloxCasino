@@ -304,11 +304,11 @@ local function build(): Model
 	-- Cabinet front face: z = +1.4 | Marquee front face: z = -0.5+1.2 = +0.7 (0.7 step)
 	local marquee = part(model, "Marquee", Vector3.new(4.3, 2.8, 2.4), Vector3.new(0, 2.9, -0.5), MAROON)
 
-	-- Dome cap: Ball (ellipsoid) sitting on top of the marquee for the rounded top silhouette.
-	-- Size X matches marquee width, Y gives dome height, Z matches marquee depth.
+	-- Dome cap: Ball ellipsoid whose CENTER is lowered into the marquee top so only
+	-- the upper dome is visible — looks like a rounded cap rather than a floating sphere.
 	local domeCap = part(model, "DomeCap",
-		Vector3.new(4.5, 2.0, 2.6),
-		Vector3.new(0, 5.2, -0.5),
+		Vector3.new(4.8, 2.4, 2.6),
+		Vector3.new(0, 4.8, -0.5),
 		MAROON)
 	domeCap.Shape = Enum.PartType.Ball
 
@@ -322,13 +322,12 @@ local function build(): Model
 	-- "LUCKY SLOT" title + sub-text on the marquee face
 	local mg = Instance.new("SurfaceGui")
 	mg.Face = Enum.NormalId.Back
-	mg.CanvasSize = Vector2.new(300, 130)
+	mg.CanvasSize = Vector2.new(300, 100)
 	mg.LightInfluence = 0
 	mg.Parent = marquee
 
 	local mTitle = Instance.new("TextLabel")
-	mTitle.Size = UDim2.new(1, 0, 0, 78)
-	mTitle.Position = UDim2.new(0, 0, 0, 8)
+	mTitle.Size = UDim2.fromScale(1, 1)
 	mTitle.BackgroundTransparency = 1
 	mTitle.Text = "LUCKY SLOT"
 	mTitle.TextColor3 = Color3.fromRGB(255, 220, 90)
@@ -337,16 +336,6 @@ local function build(): Model
 	mTitle.Font = Enum.Font.GothamBlack
 	mTitle.TextScaled = true
 	mTitle.Parent = mg
-
-	local mSub = Instance.new("TextLabel")
-	mSub.Size = UDim2.new(1, 0, 0, 32)
-	mSub.Position = UDim2.new(0, 0, 0, 90)
-	mSub.BackgroundTransparency = 1
-	mSub.Text = "Hit The Jackpot!"
-	mSub.TextColor3 = Color3.fromRGB(255, 160, 170)
-	mSub.Font = Enum.Font.GothamBold
-	mSub.TextScaled = true
-	mSub.Parent = mg
 
 	-- Screen: sits on the cabinet face (z≈1.6 so it's visible) and angled 10° for ergonomic tilt.
 	-- Must be at z > 1.4 (cabinet front face) or the solid cabinet body occludes it.
