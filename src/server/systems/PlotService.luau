@@ -50,34 +50,63 @@ local function updateSign(index: number)
 		label.Text = (owner and owner.DisplayName or "Player") .. "'s Casino"
 		label.TextColor3 = Color3.fromRGB(255, 220, 120)
 	else
-		label.Text = "Plot " .. index .. "\nWalk here to claim"
+		label.Text = "Plot " .. index .. "\nWalk through to claim"
 		label.TextColor3 = Color3.fromRGB(200, 255, 200)
 	end
 end
 
-local function buildClaimPad(index: number, plotModel: Model, center: Vector3)
-	-- Sits at the road-facing edge of the plot.
+-- A wooden door frame at the road-facing edge of the plot. Players claim the plot by
+-- walking through the doorway (an invisible trigger fills the opening). The path guides
+-- them to this doorway (exposed as the plot's ClaimPoint attribute).
+local DOOR_WIDTH = 20
+local POST_THICK = 2.5
+local POST_HEIGHT = 18
+local LINTEL_HEIGHT = 3
+local WOOD = Color3.fromRGB(116, 78, 48)
+local WOOD_TOP = Color3.fromRGB(150, 104, 62)
+
+local function buildDoorway(index: number, plotModel: Model, center: Vector3)
 	local dir = GameConfig.plotDirection(index)
-	local padPos = center - dir * (PLOT_HALF - 6)
+	local alongX = math.abs(dir.X) > 0.5
+	local doorCenter = center - dir * (PLOT_HALF - 1) -- front edge, facing the road
 
-	local pad = makePart(
-		"ClaimPad",
-		Vector3.new(14, 0.6, 14),
-		CFrame.new(padPos.X, W.PLAZA_TOP_Y + 0.6, padPos.Z),
-		Color3.fromRGB(80, 200, 120),
-		plotModel,
-		true
-	)
-	pad.CanCollide = false
+	-- Perpendicular offset for the two posts.
+	local halfSpan = DOOR_WIDTH / 2 + POST_THICK / 2
+	local function sideOffset(side: number): Vector3
+		return alongX and Vector3.new(0, 0, side * halfSpan) or Vector3.new(side * halfSpan, 0, 0)
+	end
 
+	for _, side in { 1, -1 } do
+		local p = doorCenter + sideOffset(side)
+		makePart("DoorPost", Vector3.new(POST_THICK, POST_HEIGHT, POST_THICK),
+			CFrame.new(p.X, W.PLAZA_TOP_Y + POST_HEIGHT / 2, p.Z), WOOD, plotModel)
+	end
+
+	-- Top beam.
+	local lintelLen = DOOR_WIDTH + 2 * POST_THICK
+	local lintelSize = alongX and Vector3.new(POST_THICK, LINTEL_HEIGHT, lintelLen)
+		or Vector3.new(lintelLen, LINTEL_HEIGHT, POST_THICK)
+	local lintel = makePart("DoorLintel", lintelSize,
+		CFrame.new(doorCenter.X, W.PLAZA_TOP_Y + POST_HEIGHT + LINTEL_HEIGHT / 2, doorCenter.Z), WOOD_TOP, plotModel)
+
+	-- Invisible claim trigger filling the opening.
+	local triggerSize = alongX and Vector3.new(5, POST_HEIGHT, DOOR_WIDTH)
+		or Vector3.new(DOOR_WIDTH, POST_HEIGHT, 5)
+	local trigger = makePart("ClaimTrigger", triggerSize,
+		CFrame.new(doorCenter.X, W.PLAZA_TOP_Y + POST_HEIGHT / 2, doorCenter.Z),
+		Color3.fromRGB(80, 200, 120), plotModel)
+	trigger.Transparency = 1
+	trigger.CanCollide = false
+
+	-- Sign on the lintel.
 	local sign = Instance.new("BillboardGui")
 	sign.Name = "Sign"
-	sign.Size = UDim2.new(0, 220, 0, 90)
-	sign.StudsOffset = Vector3.new(0, 9, 0)
+	sign.Size = UDim2.new(0, 240, 0, 80)
+	sign.StudsOffset = Vector3.new(0, 4, 0)
 	sign.AlwaysOnTop = true
-	sign.MaxDistance = 400
-	sign.Adornee = pad
-	sign.Parent = pad
+	sign.MaxDistance = 500
+	sign.Adornee = lintel
+	sign.Parent = lintel
 
 	local label = Instance.new("TextLabel")
 	label.Name = "Label"
@@ -90,7 +119,10 @@ local function buildClaimPad(index: number, plotModel: Model, center: Vector3)
 
 	plots[index].sign = sign
 
-	pad.Touched:Connect(function(hit)
+	-- The path points clients at this doorway.
+	plotModel:SetAttribute("ClaimPoint", doorCenter)
+
+	trigger.Touched:Connect(function(hit)
 		local character = hit and hit.Parent
 		local player = character and Players:GetPlayerFromCharacter(character)
 		if not player then return end
@@ -113,8 +145,8 @@ local function buildPlot(index: number)
 		CFrame.new(center.X, W.PLAZA_TOP_Y - 1, center.Z), STONE_SURFACE, model)
 	model.PrimaryPart = surface
 
-	-- Occupancy is exposed as an attribute so other systems (e.g. PathGuideService)
-	-- can find free plots without coupling to PlotService internals.
+	-- Occupancy is exposed as an attribute so the client path guide can find free plots
+	-- (and the ClaimPoint attribute, set in buildDoorway) without coupling to internals.
 	model:SetAttribute("Occupied", false)
 	CollectionService:AddTag(model, "Plot")
 
@@ -130,7 +162,7 @@ local function buildPlot(index: number)
 		ownerUserId = nil,
 	}
 
-	buildClaimPad(index, model, center)
+	buildDoorway(index, model, center)
 	updateSign(index)
 end
 

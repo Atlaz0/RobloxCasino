@@ -2,7 +2,6 @@
 local WorldService          = require(script.systems.WorldService)
 local PlotService           = require(script.systems.PlotService)
 local FountainService       = require(script.systems.FountainService)
-local PathGuideService      = require(script.systems.PathGuideService)
 local DataManager           = require(script.data.DataManager)
 local EconomyService        = require(script.economy.EconomyService)
 local PlacementService      = require(script.systems.PlacementService)
@@ -18,7 +17,6 @@ require(game.ReplicatedStorage.Shared.net.Remotes)
 WorldService.init()
 PlotService.init()
 FountainService.init()
-PathGuideService.init() -- needs workspace.Plots from PlotService
 
 DataManager.init()
 EconomyService.init()
