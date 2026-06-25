@@ -1,8 +1,6 @@
 -- The manual starter slot machine.
--- A fixed world object near spawn: press the prompt → pull the lever → reels roll → earn chips.
--- Always pays the base reward; matching all 3 reels triggers a jackpot with effects.
--- This is the FIRST income source, before any placeable passive machines.
--- Visual style: classic gold "Lucky Slot" arcade toy.
+-- Dome-top shape inspired by classic "Lucky" toy slot aesthetic.
+-- Press the ProximityPrompt → lever pulls → reels roll with tick sounds → earn chips.
 
 local Workspace    = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
@@ -13,7 +11,7 @@ local EconomyService = require(script.Parent.Parent.economy.EconomyService)
 
 local REWARD         = GameConfig.MANUAL_SLOT_REWARD
 local JACKPOT        = GameConfig.MANUAL_SLOT_JACKPOT
-local MACHINE_CFRAME = CFrame.new(0, 3.5, -10)
+local MACHINE_CFRAME = CFrame.new(0, 2.6, -10)
 local ALL_SYMBOLS    = { "7", "A", "$", "K", "Q", "J" }
 local TEXT_COLORS    = {
 	["7"] = Color3.fromRGB(200, 30, 45),
@@ -25,16 +23,17 @@ local TEXT_COLORS    = {
 local CELL_H       = 120
 local CELL_W       = 76
 local NUM_CELLS    = 15
-local TARGET_INDEX = 1             -- target rests near the top; reel scrolls downward onto it
-local ROLL_CELLS   = 12            -- how many cells of travel
+local TARGET_INDEX = 1
+local ROLL_CELLS   = 12
 local END_Y        = -TARGET_INDEX * CELL_H
 local START_Y      = END_Y - ROLL_CELLS * CELL_H
 
-local GOLD = Color3.fromRGB(214, 175, 60)
+local GOLD   = Color3.fromRGB(214, 175, 60)
+local MAROON = Color3.fromRGB(110, 18, 28)
+local SILVER = Color3.fromRGB(165, 165, 170)
 
 local debounce: { [Player]: boolean } = {}
 
--- references filled in build()
 local cabinet: Part
 local marqueeLight: Part
 local knob: Part
@@ -43,22 +42,34 @@ local jackpotLight: PointLight
 local sparkles: ParticleEmitter
 local spinSound: Sound
 local winSound: Sound
+local tickSound: Sound
 local reelWindows: { Frame } = {}
 
--- computed in init() after the machine is pivoted into place
 local leverRestCF: CFrame
 local leverPulledCF: CFrame
 
--- forward declaration (defined below build)
 local onSpin: (player: Player) -> ()
 
--- ── Part helper ──────────────────────────────────────────────────────────────
+-- ── Part helpers ──────────────────────────────────────────────────────────────
 
 local function part(model: Model, name: string, size: Vector3, pos: Vector3, color: Color3, material: Enum.Material?): Part
 	local p = Instance.new("Part")
 	p.Name = name
 	p.Size = size
 	p.Position = pos
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.Anchored = true
+	p.Parent = model
+	return p
+end
+
+-- For parts that need a rotation (angled screen, dome cylinder)
+local function partCF(model: Model, name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?): Part
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.CFrame = cf
 	p.Color = color
 	p.Material = material or Enum.Material.SmoothPlastic
 	p.Anchored = true
@@ -133,7 +144,6 @@ end
 
 local CROWN_BUILDERS = { K = buildKing, Q = buildQueen, J = buildJack }
 
--- Draw one symbol (visible) filling the given cell frame
 local function drawSymbol(cell: Frame, id: string)
 	local builder = CROWN_BUILDERS[id]
 	if builder then
@@ -157,6 +167,7 @@ local function makeCell(strip: Frame, idx: number, sym: string)
 	cell.Size = UDim2.fromOffset(CELL_W, CELL_H)
 	cell.Position = UDim2.fromOffset(0, idx * CELL_H)
 	cell.BackgroundTransparency = 1
+	cell.ClipsDescendants = true   -- prevents symbol art overflowing into neighbouring cells
 	cell.Parent = strip
 	drawSymbol(cell, sym)
 end
@@ -199,19 +210,33 @@ local function rollReel(reelIndex: number, target: string, duration: number): Tw
 	return tween
 end
 
+-- Plays tick sounds that mimic a decelerating reel
+local function tickReels(totalDuration: number)
+	task.spawn(function()
+		local elapsed = 0
+		local interval = 0.07
+		while elapsed < totalDuration - 0.25 do
+			tickSound:Play()
+			task.wait(interval)
+			elapsed += interval
+			interval = math.min(interval * 1.14, 0.5)
+		end
+	end)
+end
+
 local function spinReels(final: { string }, onComplete: () -> ())
 	rollReel(1, final[1], 1.1)
 	rollReel(2, final[2], 1.45)
 	local last = rollReel(3, final[3], 1.8)
+	tickReels(1.8)
 	last.Completed:Connect(function()
 		onComplete()
 	end)
 end
 
--- ── Jackpot odds panel (lower front display) ─────────────────────────────────
+-- ── Jackpot odds panel ────────────────────────────────────────────────────────
 
 local function buildJackpotPanel(face: Frame)
-	-- chance that all three reels match = 1 / (symbols ^ 2)
 	local oddsText = string.format("%.1f%%", 100 / ((#ALL_SYMBOLS) ^ 2))
 
 	local list = Instance.new("UIListLayout")
@@ -222,86 +247,121 @@ local function buildJackpotPanel(face: Frame)
 	list.Parent = face
 
 	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, 0, 0, 30)
+	title.Size = UDim2.new(1, 0, 0, 28)
 	title.BackgroundTransparency = 1
 	title.Text = "JACKPOT CHANCE"
 	title.TextColor3 = Color3.fromRGB(255, 215, 90)
 	title.Font = Enum.Font.GothamBold
-	title.TextSize = 24
+	title.TextSize = 22
 	title.LayoutOrder = 1
 	title.Parent = face
 
 	local pct = Instance.new("TextLabel")
-	pct.Size = UDim2.new(1, 0, 0, 64)
+	pct.Size = UDim2.new(1, 0, 0, 60)
 	pct.BackgroundTransparency = 1
 	pct.Text = oddsText .. "!"
 	pct.TextColor3 = Color3.fromRGB(255, 255, 255)
 	pct.TextStrokeTransparency = 0.2
 	pct.TextStrokeColor3 = Color3.fromRGB(120, 20, 0)
 	pct.Font = Enum.Font.GothamBlack
-	pct.TextSize = 60
+	pct.TextSize = 56
 	pct.LayoutOrder = 2
 	pct.Parent = face
 
 	local sub = Instance.new("TextLabel")
-	sub.Size = UDim2.new(1, 0, 0, 24)
+	sub.Size = UDim2.new(1, 0, 0, 44)
 	sub.BackgroundTransparency = 1
 	sub.Text = "match 3  •  +" .. JACKPOT .. " chips"
 	sub.TextColor3 = Color3.fromRGB(255, 200, 160)
-	sub.Font = Enum.Font.Gotham
-	sub.TextSize = 18
+	sub.Font = Enum.Font.GothamBold
+	sub.TextSize = 30
 	sub.LayoutOrder = 3
 	sub.Parent = face
 end
 
--- ── Build the machine ────────────────────────────────────────────────────────
+-- ── Build the machine ─────────────────────────────────────────────────────────
+--
+-- Shape overview (local space, cabinet PrimaryPart centered at y=0):
+--
+--   DomeCap   y≈5.2   ← horizontal cylinder = rounded top (dome)
+--   Marquee   y≈3.0   ← tall maroon top, wider + stepped back 0.7 from cabinet
+--   ──── Brow ledge (gold) bridging the step ────
+--   Cabinet   y= 0    ← silver body (PrimaryPart), front face at z=+1.4
+--   Base      y≈-2.2  ← dark plinth
 
 local function build(): Model
 	local model = Instance.new("Model")
 	model.Name = "ManualSlotMachine"
 
-	-- Dark base
-	part(model, "Base", Vector3.new(5, 0.6, 4), Vector3.new(0, -3.2, 0), Color3.fromRGB(28, 24, 30))
+	-- Dark plinth
+	part(model, "Base", Vector3.new(5, 0.4, 4.2), Vector3.new(0, -2.2, 0), Color3.fromRGB(28, 24, 30))
 
-	-- Gold cabinet body (primary part)
-	cabinet = part(model, "Cabinet", Vector3.new(4, 6, 3), Vector3.new(0, 0, 0), GOLD, Enum.Material.Metal)
+	-- Silver lower body (contains screen + panel)
+	cabinet = part(model, "Cabinet", Vector3.new(3.4, 4.0, 2.8), Vector3.new(0, 0, 0), SILVER, Enum.Material.Metal)
 	model.PrimaryPart = cabinet
 
-	-- Maroon marquee on top — pushed back so the silhouette is stepped, not a flat rectangle.
-	-- Cabinet front face (player-facing) is at local z = +1.5.
-	-- Marquee front face sits at z = +0.5, giving a 1-stud step-back.
-	local marquee = part(model, "Marquee", Vector3.new(4.2, 1.4, 2.0), Vector3.new(0, 3.6, -0.5), Color3.fromRGB(120, 20, 32))
-	-- Neon light strip sits flush with the marquee's front face.
-	marqueeLight = part(model, "MarqueeLight", Vector3.new(3.2, 0.22, 0.3), Vector3.new(0, 2.9, 0.55), Color3.fromRGB(255, 220, 80), Enum.Material.Neon)
-	-- Brow: thin gold ledge that bridges the step between marquee and cabinet front.
-	part(model, "Brow", Vector3.new(4.3, 0.22, 1.2), Vector3.new(0, 2.9, 1.0), GOLD, Enum.Material.Metal)
+	-- Tall maroon marquee — wider and pushed back relative to cabinet
+	-- Cabinet front face: z = +1.4 | Marquee front face: z = -0.5+1.2 = +0.7 (0.7 step)
+	local marquee = part(model, "Marquee", Vector3.new(4.3, 2.8, 2.4), Vector3.new(0, 2.9, -0.5), MAROON)
 
-	-- Marquee title "LUCKY SLOT"
+	-- Dome cap: horizontal cylinder on top of marquee creates the rounded top silhouette.
+	-- Default Roblox cylinder runs along Y; rotating 90° around Z makes it run along X.
+	-- After rotation: Size.Y maps to world-X (width=4.3), Size.X/Z map to world-Y/Z (diam=1.8).
+	local domeCap = partCF(model, "DomeCap",
+		Vector3.new(1.8, 4.3, 1.8),
+		CFrame.new(0, 5.2, -0.5) * CFrame.Angles(0, 0, math.rad(90)),
+		MAROON)
+	domeCap.Shape = Enum.PartType.Cylinder
+
+	-- Gold brow: thin ledge that bridges the step between marquee front and cabinet front
+	part(model, "Brow", Vector3.new(4.4, 0.2, 0.85), Vector3.new(0, 1.92, 1.025), GOLD, Enum.Material.Metal)
+
+	-- Neon accent strip at the bottom-front of the marquee
+	marqueeLight = part(model, "MarqueeLight", Vector3.new(3.2, 0.18, 0.28),
+		Vector3.new(0, 1.56, 0.82), Color3.fromRGB(255, 220, 80), Enum.Material.Neon)
+
+	-- "LUCKY SLOT" title + sub-text on the marquee face
 	local mg = Instance.new("SurfaceGui")
 	mg.Face = Enum.NormalId.Back
-	mg.CanvasSize = Vector2.new(300, 100)
+	mg.CanvasSize = Vector2.new(300, 130)
 	mg.LightInfluence = 0
 	mg.Parent = marquee
+
 	local mTitle = Instance.new("TextLabel")
-	mTitle.Size = UDim2.fromScale(1, 1)
+	mTitle.Size = UDim2.new(1, 0, 0, 78)
+	mTitle.Position = UDim2.new(0, 0, 0, 8)
 	mTitle.BackgroundTransparency = 1
 	mTitle.Text = "LUCKY SLOT"
 	mTitle.TextColor3 = Color3.fromRGB(255, 220, 90)
 	mTitle.TextStrokeTransparency = 0.2
-	mTitle.TextStrokeColor3 = Color3.fromRGB(120, 20, 0)
+	mTitle.TextStrokeColor3 = Color3.fromRGB(80, 10, 0)
 	mTitle.Font = Enum.Font.GothamBlack
 	mTitle.TextScaled = true
 	mTitle.Parent = mg
 
-	-- Gold trim + dark reel window backing
-	part(model, "ScreenFrame", Vector3.new(3.5, 2.7, 0.25), Vector3.new(0, 1.1, 1.5), Color3.fromRGB(235, 195, 70), Enum.Material.Metal)
-	local screen = part(model, "Screen", Vector3.new(3.1, 2.1, 0.2), Vector3.new(0, 1.1, 1.62), Color3.fromRGB(15, 12, 10))
+	local mSub = Instance.new("TextLabel")
+	mSub.Size = UDim2.new(1, 0, 0, 32)
+	mSub.Position = UDim2.new(0, 0, 0, 90)
+	mSub.BackgroundTransparency = 1
+	mSub.Text = "Hit The Jackpot!"
+	mSub.TextColor3 = Color3.fromRGB(255, 160, 170)
+	mSub.Font = Enum.Font.GothamBold
+	mSub.TextScaled = true
+	mSub.Parent = mg
 
-	-- Jackpot odds panel (lower front)
-	local panel = part(model, "Panel", Vector3.new(3.5, 1.6, 0.25), Vector3.new(0, -1.6, 1.5), Color3.fromRGB(120, 20, 32))
+	-- Screen: pushed back from cabinet face and angled 12° toward the player (ergonomic tilt).
+	-- CFrame.Angles(+rx, 0, 0): positive rx tilts top of part in +Z direction (toward player).
+	local screenAngle = math.rad(12)
+	local sfCF = CFrame.new(0, 0.25, 0.95) * CFrame.Angles(screenAngle, 0, 0)
+	local ssCF = CFrame.new(0, 0.25, 1.06) * CFrame.Angles(screenAngle, 0, 0)
+	partCF(model, "ScreenFrame", Vector3.new(3.0, 2.4, 0.26), sfCF, Color3.fromRGB(235, 195, 70), Enum.Material.Metal)
+	local screen = partCF(model, "Screen", Vector3.new(2.56, 1.9, 0.2), ssCF, Color3.fromRGB(15, 12, 10))
+
+	-- Jackpot odds panel (lower cabinet, flat against front face)
+	local panel = part(model, "Panel", Vector3.new(3.0, 1.5, 0.25), Vector3.new(0, -1.55, 1.4), MAROON)
 	local pg = Instance.new("SurfaceGui")
 	pg.Face = Enum.NormalId.Back
-	pg.CanvasSize = Vector2.new(300, 140)
+	pg.CanvasSize = Vector2.new(300, 170)
 	pg.LightInfluence = 0
 	pg.Parent = panel
 	local pFace = Instance.new("Frame")
@@ -310,10 +370,10 @@ local function build(): Model
 	pFace.Parent = pg
 	buildJackpotPanel(pFace)
 
-	-- Lever: black arm (anchored) + big red ball knob (welded so it follows)
-	leverArm = part(model, "LeverArm", Vector3.new(0.4, 2.6, 0.4), Vector3.new(2.45, 1.6, 0), Color3.fromRGB(20, 20, 22), Enum.Material.Metal)
+	-- Lever: black arm on the right side, red ball knob welded to follow it
+	leverArm = part(model, "LeverArm", Vector3.new(0.4, 2.6, 0.4), Vector3.new(2.15, 0.6, 0), Color3.fromRGB(20, 20, 22), Enum.Material.Metal)
 	leverArm.CanCollide = false
-	knob = part(model, "LeverKnob", Vector3.new(1.1, 1.1, 1.1), Vector3.new(2.45, 3.1, 0), Color3.fromRGB(210, 35, 40), Enum.Material.SmoothPlastic)
+	knob = part(model, "LeverKnob", Vector3.new(1.1, 1.1, 1.1), Vector3.new(2.15, 2.15, 0), Color3.fromRGB(210, 35, 40), Enum.Material.SmoothPlastic)
 	knob.Shape = Enum.PartType.Ball
 	knob.CanCollide = false
 	local weld = Instance.new("WeldConstraint")
@@ -322,9 +382,9 @@ local function build(): Model
 	weld.Parent = leverArm
 	knob.Anchored = false
 
-	-- Jackpot light + sparkle emitter on the marquee light
+	-- Jackpot effects: point light + sparkle emitter parented to the neon strip
 	jackpotLight = Instance.new("PointLight")
-	jackpotLight.Range = 20
+	jackpotLight.Range = 22
 	jackpotLight.Brightness = 0
 	jackpotLight.Color = Color3.fromRGB(255, 255, 255)
 	jackpotLight.Parent = marqueeLight
@@ -347,18 +407,26 @@ local function build(): Model
 	})
 	sparkles.Parent = marqueeLight
 
-	-- Sounds (built-in engine assets, always load)
+	-- Lever pull click
 	spinSound = Instance.new("Sound")
 	spinSound.SoundId = "rbxasset://sounds/switch.wav"
-	spinSound.Volume = 0.5
+	spinSound.Volume = 0.6
 	spinSound.Parent = cabinet
 
+	-- Jackpot sting
 	winSound = Instance.new("Sound")
 	winSound.SoundId = "rbxasset://sounds/electronicpingshort.wav"
 	winSound.Volume = 0.9
 	winSound.Parent = cabinet
 
-	-- Reels on the screen (SurfaceGui faces +Z / Back, toward the player)
+	-- Reel tick (plays repeatedly while reels spin, with increasing intervals)
+	tickSound = Instance.new("Sound")
+	tickSound.SoundId = "rbxasset://sounds/button.wav"
+	tickSound.Volume = 0.35
+	tickSound.PlaybackSpeed = 1.6
+	tickSound.Parent = cabinet
+
+	-- Reel display (SurfaceGui on the angled screen part)
 	local sg = Instance.new("SurfaceGui")
 	sg.Name = "ReelDisplay"
 	sg.Face = Enum.NormalId.Back
@@ -406,7 +474,7 @@ local function build(): Model
 	return model
 end
 
--- ── Visual / audio feedback ──────────────────────────────────────────────────
+-- ── Visual / audio feedback ───────────────────────────────────────────────────
 
 local function pullLever()
 	TweenService:Create(leverArm, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -418,7 +486,7 @@ local function pullLever()
 end
 
 local function jackpotEffects()
-	sparkles:Emit(70)
+	sparkles:Emit(80)
 	task.spawn(function()
 		for i = 1, 18 do
 			local c = Color3.fromHSV((i / 18) % 1, 1, 1)
@@ -460,7 +528,7 @@ local function popup(amount: number, isJackpot: boolean)
 	task.delay(isJackpot and 1.25 or 0.85, function() bb:Destroy() end)
 end
 
--- ── Spin handler ─────────────────────────────────────────────────────────────
+-- ── Spin handler ──────────────────────────────────────────────────────────────
 
 function onSpin(player: Player)
 	if debounce[player] then return end
@@ -469,11 +537,9 @@ function onSpin(player: Player)
 	spinSound:Play()
 	pullLever()
 
-	-- guaranteed base reward, paid up front for snappy feedback
 	EconomyService.awardChips(player, REWARD)
 	popup(REWARD, false)
 
-	-- roll the reels; matching all three is a jackpot
 	local final = {
 		ALL_SYMBOLS[math.random(#ALL_SYMBOLS)],
 		ALL_SYMBOLS[math.random(#ALL_SYMBOLS)],
@@ -492,16 +558,15 @@ function onSpin(player: Player)
 	end)
 end
 
--- ── Init ─────────────────────────────────────────────────────────────────────
+-- ── Init ──────────────────────────────────────────────────────────────────────
 
 local function init()
 	local model = build()
 	model:PivotTo(MACHINE_CFRAME)
 	model.Parent = Workspace
 
-	-- compute lever rest/pulled CFrames now that the machine is in place
 	leverRestCF = leverArm.CFrame
-	local hingeCF = leverRestCF * CFrame.new(0, -1.3, 0)          -- bottom of the arm
+	local hingeCF = leverRestCF * CFrame.new(0, -1.3, 0)
 	leverPulledCF = hingeCF * CFrame.Angles(math.rad(55), 0, 0) * CFrame.new(0, 1.3, 0)
 end
 

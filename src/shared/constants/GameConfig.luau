@@ -5,6 +5,11 @@ GameConfig.PASSIVE_INCOME_INTERVAL = 1        -- seconds between income ticks
 GameConfig.STARTING_CHIPS           = 100
 GameConfig.MAX_LOT_MACHINES         = 50
 
+-- Manual starter slot machine (active income — press to earn)
+GameConfig.MANUAL_SLOT_REWARD       = 2        -- chips per spin (guaranteed)
+GameConfig.MANUAL_SLOT_JACKPOT      = 50       -- bonus chips when all 3 reels match
+GameConfig.MANUAL_SLOT_COOLDOWN     = 0.25     -- seconds between presses per player
+
 -- Prestige
 GameConfig.PRESTIGE_COOLDOWN        = 300      -- seconds
 GameConfig.PRESTIGE_MULTIPLIER_STEP = 0.10     -- +10% per prestige level
