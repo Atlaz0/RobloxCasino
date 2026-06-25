@@ -304,14 +304,13 @@ local function build(): Model
 	-- Cabinet front face: z = +1.4 | Marquee front face: z = -0.5+1.2 = +0.7 (0.7 step)
 	local marquee = part(model, "Marquee", Vector3.new(4.3, 2.8, 2.4), Vector3.new(0, 2.9, -0.5), MAROON)
 
-	-- Dome cap: horizontal cylinder on top of marquee creates the rounded top silhouette.
-	-- Default Roblox cylinder runs along Y; rotating 90° around Z makes it run along X.
-	-- After rotation: Size.Y maps to world-X (width=4.3), Size.X/Z map to world-Y/Z (diam=1.8).
-	local domeCap = partCF(model, "DomeCap",
-		Vector3.new(1.8, 4.3, 1.8),
-		CFrame.new(0, 5.2, -0.5) * CFrame.Angles(0, 0, math.rad(90)),
+	-- Dome cap: Ball (ellipsoid) sitting on top of the marquee for the rounded top silhouette.
+	-- Size X matches marquee width, Y gives dome height, Z matches marquee depth.
+	local domeCap = part(model, "DomeCap",
+		Vector3.new(4.5, 2.0, 2.6),
+		Vector3.new(0, 5.2, -0.5),
 		MAROON)
-	domeCap.Shape = Enum.PartType.Cylinder
+	domeCap.Shape = Enum.PartType.Ball
 
 	-- Gold brow: thin ledge that bridges the step between marquee front and cabinet front
 	part(model, "Brow", Vector3.new(4.4, 0.2, 0.85), Vector3.new(0, 1.92, 1.025), GOLD, Enum.Material.Metal)
@@ -349,11 +348,11 @@ local function build(): Model
 	mSub.TextScaled = true
 	mSub.Parent = mg
 
-	-- Screen: pushed back from cabinet face and angled 12° toward the player (ergonomic tilt).
-	-- CFrame.Angles(+rx, 0, 0): positive rx tilts top of part in +Z direction (toward player).
-	local screenAngle = math.rad(12)
-	local sfCF = CFrame.new(0, 0.25, 0.95) * CFrame.Angles(screenAngle, 0, 0)
-	local ssCF = CFrame.new(0, 0.25, 1.06) * CFrame.Angles(screenAngle, 0, 0)
+	-- Screen: sits on the cabinet face (z≈1.6 so it's visible) and angled 10° for ergonomic tilt.
+	-- Must be at z > 1.4 (cabinet front face) or the solid cabinet body occludes it.
+	local screenAngle = math.rad(10)
+	local sfCF = CFrame.new(0, 0.25, 1.46) * CFrame.Angles(screenAngle, 0, 0)
+	local ssCF = CFrame.new(0, 0.25, 1.58) * CFrame.Angles(screenAngle, 0, 0)
 	partCF(model, "ScreenFrame", Vector3.new(3.0, 2.4, 0.26), sfCF, Color3.fromRGB(235, 195, 70), Enum.Material.Metal)
 	local screen = partCF(model, "Screen", Vector3.new(2.56, 1.9, 0.2), ssCF, Color3.fromRGB(15, 12, 10))
 
