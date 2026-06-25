@@ -1,6 +1,5 @@
 -- The manual starter slot machine.
--- Dome-top shape inspired by classic "Lucky" toy slot aesthetic.
--- Press the ProximityPrompt → lever pulls → reels roll with tick sounds → earn chips.
+-- Classic slot machine shape: gold cabinet, maroon marquee, screen + lever.
 
 local Workspace    = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
@@ -11,7 +10,7 @@ local EconomyService = require(script.Parent.Parent.economy.EconomyService)
 
 local REWARD         = GameConfig.MANUAL_SLOT_REWARD
 local JACKPOT        = GameConfig.MANUAL_SLOT_JACKPOT
-local MACHINE_CFRAME = CFrame.new(0, 2.6, -10)
+local MACHINE_CFRAME = CFrame.new(0, 3.5, -10)
 local ALL_SYMBOLS    = { "7", "A", "$", "K", "Q", "J" }
 local TEXT_COLORS    = {
 	["7"] = Color3.fromRGB(200, 30, 45),
@@ -30,7 +29,6 @@ local START_Y      = END_Y - ROLL_CELLS * CELL_H
 
 local GOLD   = Color3.fromRGB(214, 175, 60)
 local MAROON = Color3.fromRGB(110, 18, 28)
-local SILVER = Color3.fromRGB(165, 165, 170)
 
 local debounce: { [Player]: boolean } = {}
 
@@ -281,48 +279,32 @@ end
 
 -- ── Build the machine ─────────────────────────────────────────────────────────
 --
--- Shape overview (local space, cabinet PrimaryPart centered at y=0):
---
---   DomeCap   y≈5.2   ← horizontal cylinder = rounded top (dome)
---   Marquee   y≈3.0   ← tall maroon top, wider + stepped back 0.7 from cabinet
---   ──── Brow ledge (gold) bridging the step ────
---   Cabinet   y= 0    ← silver body (PrimaryPart), front face at z=+1.4
---   Base      y≈-2.2  ← dark plinth
+--   Marquee  y≈3.5  ← maroon top with "LUCKY SLOT"
+--   Cabinet  y= 0   ← gold body (PrimaryPart), screen + panel on front face
+--   Base     y≈-3.2 ← dark plinth
 
 local function build(): Model
 	local model = Instance.new("Model")
 	model.Name = "ManualSlotMachine"
 
 	-- Dark plinth
-	part(model, "Base", Vector3.new(5, 0.4, 4.2), Vector3.new(0, -2.2, 0), Color3.fromRGB(28, 24, 30))
+	part(model, "Base", Vector3.new(5, 0.5, 4), Vector3.new(0, -3.25, 0), Color3.fromRGB(28, 24, 30))
 
-	-- Silver lower body (contains screen + panel)
-	cabinet = part(model, "Cabinet", Vector3.new(3.4, 4.0, 2.8), Vector3.new(0, 0, 0), SILVER, Enum.Material.Metal)
+	-- Gold cabinet body
+	cabinet = part(model, "Cabinet", Vector3.new(4, 5.5, 3), Vector3.new(0, 0, 0), GOLD, Enum.Material.Metal)
 	model.PrimaryPart = cabinet
 
-	-- Tall maroon marquee — wider and pushed back relative to cabinet
-	-- Cabinet front face: z = +1.4 | Marquee front face: z = -0.5+1.2 = +0.7 (0.7 step)
-	local marquee = part(model, "Marquee", Vector3.new(4.3, 2.8, 2.4), Vector3.new(0, 2.9, -0.5), MAROON)
+	-- Maroon marquee on top (slightly wider so it overhangs the cabinet)
+	local marquee = part(model, "Marquee", Vector3.new(4.3, 1.8, 3.2), Vector3.new(0, 3.65, 0), MAROON)
 
-	-- Dome cap: Ball ellipsoid whose CENTER is lowered into the marquee top so only
-	-- the upper dome is visible — looks like a rounded cap rather than a floating sphere.
-	local domeCap = part(model, "DomeCap",
-		Vector3.new(4.8, 2.4, 2.6),
-		Vector3.new(0, 4.8, -0.5),
-		MAROON)
-	domeCap.Shape = Enum.PartType.Ball
+	-- Neon light strip at the base of the marquee (front face)
+	marqueeLight = part(model, "MarqueeLight", Vector3.new(3.2, 0.18, 0.2),
+		Vector3.new(0, 2.78, 1.6), Color3.fromRGB(255, 220, 80), Enum.Material.Neon)
 
-	-- Gold brow: thin ledge that bridges the step between marquee front and cabinet front
-	part(model, "Brow", Vector3.new(4.4, 0.2, 0.85), Vector3.new(0, 1.92, 1.025), GOLD, Enum.Material.Metal)
-
-	-- Neon accent strip at the bottom-front of the marquee
-	marqueeLight = part(model, "MarqueeLight", Vector3.new(3.2, 0.18, 0.28),
-		Vector3.new(0, 1.56, 0.82), Color3.fromRGB(255, 220, 80), Enum.Material.Neon)
-
-	-- "LUCKY SLOT" title + sub-text on the marquee face
+	-- "LUCKY SLOT" text on the marquee front face
 	local mg = Instance.new("SurfaceGui")
 	mg.Face = Enum.NormalId.Back
-	mg.CanvasSize = Vector2.new(300, 100)
+	mg.CanvasSize = Vector2.new(300, 120)
 	mg.LightInfluence = 0
 	mg.Parent = marquee
 
@@ -337,19 +319,15 @@ local function build(): Model
 	mTitle.TextScaled = true
 	mTitle.Parent = mg
 
-	-- Screen: sits on the cabinet face (z≈1.6 so it's visible) and angled 10° for ergonomic tilt.
-	-- Must be at z > 1.4 (cabinet front face) or the solid cabinet body occludes it.
-	local screenAngle = math.rad(10)
-	local sfCF = CFrame.new(0, 0.25, 1.46) * CFrame.Angles(screenAngle, 0, 0)
-	local ssCF = CFrame.new(0, 0.25, 1.58) * CFrame.Angles(screenAngle, 0, 0)
-	partCF(model, "ScreenFrame", Vector3.new(3.0, 2.4, 0.26), sfCF, Color3.fromRGB(235, 195, 70), Enum.Material.Metal)
-	local screen = partCF(model, "Screen", Vector3.new(2.56, 1.9, 0.2), ssCF, Color3.fromRGB(15, 12, 10))
+	-- Gold screen frame on the cabinet front face
+	part(model, "ScreenFrame", Vector3.new(3.5, 2.6, 0.25), Vector3.new(0, 0.9, 1.53), Color3.fromRGB(235, 195, 70), Enum.Material.Metal)
+	local screen = part(model, "Screen", Vector3.new(3.0, 2.1, 0.2), Vector3.new(0, 0.9, 1.65), Color3.fromRGB(15, 12, 10))
 
-	-- Jackpot odds panel (lower cabinet, flat against front face)
-	local panel = part(model, "Panel", Vector3.new(3.0, 1.5, 0.25), Vector3.new(0, -1.55, 1.4), MAROON)
+	-- Jackpot odds panel below the screen
+	local panel = part(model, "Panel", Vector3.new(3.5, 1.6, 0.25), Vector3.new(0, -1.5, 1.53), MAROON)
 	local pg = Instance.new("SurfaceGui")
 	pg.Face = Enum.NormalId.Back
-	pg.CanvasSize = Vector2.new(300, 170)
+	pg.CanvasSize = Vector2.new(300, 150)
 	pg.LightInfluence = 0
 	pg.Parent = panel
 	local pFace = Instance.new("Frame")
@@ -358,10 +336,10 @@ local function build(): Model
 	pFace.Parent = pg
 	buildJackpotPanel(pFace)
 
-	-- Lever: black arm on the right side, red ball knob welded to follow it
-	leverArm = part(model, "LeverArm", Vector3.new(0.4, 2.6, 0.4), Vector3.new(2.15, 0.6, 0), Color3.fromRGB(20, 20, 22), Enum.Material.Metal)
+	-- Lever: black arm on the right side with a red ball knob welded to it
+	leverArm = part(model, "LeverArm", Vector3.new(0.4, 2.8, 0.4), Vector3.new(2.4, 0.9, 0), Color3.fromRGB(20, 20, 22), Enum.Material.Metal)
 	leverArm.CanCollide = false
-	knob = part(model, "LeverKnob", Vector3.new(1.1, 1.1, 1.1), Vector3.new(2.15, 2.15, 0), Color3.fromRGB(210, 35, 40), Enum.Material.SmoothPlastic)
+	knob = part(model, "LeverKnob", Vector3.new(1.1, 1.1, 1.1), Vector3.new(2.4, 2.55, 0), Color3.fromRGB(210, 35, 40), Enum.Material.SmoothPlastic)
 	knob.Shape = Enum.PartType.Ball
 	knob.CanCollide = false
 	local weld = Instance.new("WeldConstraint")
@@ -370,7 +348,7 @@ local function build(): Model
 	weld.Parent = leverArm
 	knob.Anchored = false
 
-	-- Jackpot effects: point light + sparkle emitter parented to the neon strip
+	-- Jackpot effects on the neon strip
 	jackpotLight = Instance.new("PointLight")
 	jackpotLight.Range = 22
 	jackpotLight.Brightness = 0
@@ -395,26 +373,24 @@ local function build(): Model
 	})
 	sparkles.Parent = marqueeLight
 
-	-- Lever pull click
+	-- Sounds
 	spinSound = Instance.new("Sound")
 	spinSound.SoundId = "rbxasset://sounds/switch.wav"
 	spinSound.Volume = 0.6
 	spinSound.Parent = cabinet
 
-	-- Jackpot sting
 	winSound = Instance.new("Sound")
 	winSound.SoundId = "rbxasset://sounds/electronicpingshort.wav"
 	winSound.Volume = 0.9
 	winSound.Parent = cabinet
 
-	-- Reel tick (plays repeatedly while reels spin, with increasing intervals)
 	tickSound = Instance.new("Sound")
 	tickSound.SoundId = "rbxasset://sounds/button.wav"
 	tickSound.Volume = 0.35
 	tickSound.PlaybackSpeed = 1.6
 	tickSound.Parent = cabinet
 
-	-- Reel display (SurfaceGui on the angled screen part)
+	-- Reel display on the screen part
 	local sg = Instance.new("SurfaceGui")
 	sg.Name = "ReelDisplay"
 	sg.Face = Enum.NormalId.Back
