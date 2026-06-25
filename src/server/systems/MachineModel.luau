@@ -2,8 +2,17 @@
 -- templates, so machines are constructed from parts). Used by PlacementService when a
 -- machine is bought, and by PlotService when rebuilding a returning player's machines.
 
-local Shared       = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
-local FormatNumber = require(Shared.utils.FormatNumber)
+local Shared        = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local FormatNumber  = require(Shared.utils.FormatNumber)
+local MachineAssets = require(Shared.MachineAssets)
+
+local function anchorAll(model: Model)
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+		end
+	end
+end
 
 local PHASE_COLORS = {
 	[1] = Color3.fromRGB(255, 200, 40),  -- gold
@@ -19,6 +28,22 @@ local MachineModel = {}
 
 -- `baseCF` is the CFrame of the machine's base center (already on the plot surface).
 function MachineModel.build(def, baseCF: CFrame): Model
+	-- Prefer the real saved model when available.
+	local template = MachineAssets.find(def.modelName)
+	if template then
+		local clone = template:Clone()
+		MachineAssets.stripScripts(clone) -- neutralize any embedded model scripts
+		anchorAll(clone)
+		-- Ground the model's true (world-space) bottom on the plot surface at baseCF's XZ.
+		-- (baseCF.Y is the base-center = surface + 0.5.)
+		MachineAssets.ground(clone, baseCF.Position.X, baseCF.Position.Z, baseCF.Y - 0.5)
+		if not clone.PrimaryPart then
+			clone.PrimaryPart = clone:FindFirstChildWhichIsA("BasePart")
+		end
+		return clone
+	end
+
+	-- Procedural placeholder fallback (no saved model for this machine).
 	local color = PHASE_COLORS[def.phase] or PHASE_COLORS[1]
 
 	local model = Instance.new("Model")

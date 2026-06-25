@@ -3,7 +3,8 @@
 export type MachineInstance = {
 	id: string,       -- MachineData key e.g. "SlotMachine"
 	level: number,
-	cf: CFrame,
+	x: number,        -- plot-relative offset (DataStore-serializable; no CFrame)
+	z: number,
 }
 
 export type StaffSlot = {

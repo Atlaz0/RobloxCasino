@@ -2,23 +2,20 @@ local Players          = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService       = game:GetService("RunService")
 
-local Shared      = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
-local Remotes     = require(Shared.net.Remotes)
-local MachineData = require(Shared.constants.MachineData)
+local Shared        = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Remotes       = require(Shared.net.Remotes)
+local MachineData   = require(Shared.constants.MachineData)
+local MachineAssets = require(Shared.MachineAssets)
 
 local player = Players.LocalPlayer
 local mouse  = player:GetMouse()
 
-local PHASE_COLORS = {
-	[1] = Color3.fromRGB(255, 200, 40),
-	[2] = Color3.fromRGB(170, 90, 230),
-	[3] = Color3.fromRGB(60, 220, 220),
-}
-
 local GRID_SIZE = 4
+local GHOST_GREEN = Color3.fromRGB(80, 255, 140)
+local GHOST_RED   = Color3.fromRGB(255, 90, 90)
 
 local activeMachineId: string? = nil
-local ghost: Part? = nil
+local ghostModel: Model? = nil
 local plotInfo = { claimed = false } -- updated by PlotAssigned
 
 -- Simple screen toast for feedback (placement errors, hints).
@@ -60,11 +57,34 @@ local function toast(text: string)
 end
 
 local function clearGhost()
-	if ghost then
-		ghost:Destroy()
-		ghost = nil
+	if ghostModel then
+		ghostModel:Destroy()
+		ghostModel = nil
 	end
-	mouse.TargetFilter = nil
+end
+
+-- Makes a cloned model into a ghost: translucent, non-colliding, and transparent to the
+-- mouse ray (CanQuery = false), with a green/red validity Highlight.
+local function styleGhost(model: Model)
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanTouch = false
+			d.CanQuery = false -- so mouse.Hit lands on the plot, not the ghost
+			d.Transparency = math.clamp(d.Transparency + 0.45, 0.4, 0.85)
+		elseif d:IsA("Decal") or d:IsA("Texture") then
+			d.Transparency = math.clamp(d.Transparency + 0.45, 0.4, 1)
+		end
+	end
+
+	local hl = Instance.new("Highlight")
+	hl.Name = "GhostHighlight"
+	hl.FillColor = GHOST_GREEN
+	hl.OutlineColor = GHOST_GREEN
+	hl.FillTransparency = 0.55
+	hl.DepthMode = Enum.HighlightDepthMode.Occluded
+	hl.Parent = model
 end
 
 local function beginPlacement(machineId: string)
@@ -79,19 +99,23 @@ local function beginPlacement(machineId: string)
 
 	activeMachineId = machineId
 
-	ghost = Instance.new("Part")
-	ghost.Name = "PlacementGhost"
-	ghost.Anchored = true
-	ghost.CanCollide = false
-	ghost.Transparency = 0.45
-	ghost.Material = Enum.Material.Neon
-	ghost.Color = PHASE_COLORS[def.phase] or PHASE_COLORS[1]
-	ghost.Size = Vector3.new(6, 10, 6)
-	ghost.Parent = workspace
+	-- Ghost = a translucent clone of the real model so it matches the placed shape.
+	local template = MachineAssets.find(def.modelName)
+	if template then
+		ghostModel = template:Clone()
+		MachineAssets.stripScripts(ghostModel) -- never run embedded model scripts (even client-side)
+	else
+		-- Fallback if the model is missing: a simple box.
+		ghostModel = Instance.new("Model")
+		local box = Instance.new("Part")
+		box.Size = Vector3.new(6, 10, 6)
+		box.Material = Enum.Material.Neon
+		box.Parent = ghostModel
+		ghostModel.PrimaryPart = box
+	end
 
-	-- Critical: make the mouse ray ignore the ghost, otherwise mouse.Hit lands on the
-	-- ghost itself and the placement position feeds back on itself.
-	mouse.TargetFilter = ghost
+	styleGhost(ghostModel)
+	ghostModel.Parent = workspace
 end
 
 local function cancelPlacement()
@@ -112,17 +136,22 @@ local function resolvePoint(worldPos: Vector3): (Vector3, boolean)
 	x = math.clamp(x, cx - half, cx + half)
 	z = math.clamp(z, cz - half, cz + half)
 
-	return Vector3.new(x, plotInfo.topY + 5, z), inside
+	return Vector3.new(x, plotInfo.topY, z), inside
 end
 
 local function init()
 	RunService.RenderStepped:Connect(function()
-		if not activeMachineId or not ghost or not plotInfo.claimed then return end
+		if not activeMachineId or not ghostModel or not plotInfo.claimed then return end
 		local hit = mouse.Hit
 		if not hit then return end
 		local point, inside = resolvePoint(hit.Position)
-		ghost.Position = point
-		ghost.Color = inside and Color3.fromRGB(120, 255, 150) or Color3.fromRGB(255, 90, 90)
+		-- Ground the ghost on the plot surface at the snapped point.
+		MachineAssets.ground(ghostModel, point.X, point.Z, plotInfo.topY)
+		local hl = ghostModel:FindFirstChild("GhostHighlight")
+		if hl then
+			hl.FillColor = inside and GHOST_GREEN or GHOST_RED
+			hl.OutlineColor = inside and GHOST_GREEN or GHOST_RED
+		end
 	end)
 
 	UserInputService.InputBegan:Connect(function(input, processed)

@@ -49,13 +49,14 @@ local function placeMachine(player: Player, machineId: string, worldCF: CFrame):
 	local model = MachineModel.build(def, baseCF)
 	model.Parent = plot.machinesFolder
 
-	-- Store the position RELATIVE to the plot so it can be rebuilt on whatever plot the
-	-- player claims next session.
-	local relativeCF = plot.plotCF:ToObjectSpace(baseCF)
+	-- Store the position RELATIVE to the plot as plain numbers (CFrames can't be saved to
+	-- a DataStore) so it can be rebuilt on whatever plot the player claims next session.
+	local rel = plot.plotCF:ToObjectSpace(baseCF).Position
 	table.insert(profile.machines, {
 		id = machineId,
 		level = 1,
-		cf = relativeCF,
+		x = rel.X,
+		z = rel.Z,
 	})
 	DataManager.markDirty(player)
 

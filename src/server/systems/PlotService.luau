@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local CollectionService = game:GetService("CollectionService")
 
 local Shared       = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig   = require(Shared.constants.GameConfig)
@@ -108,14 +109,21 @@ local function buildPlot(index: number)
 
 	makePart("Border", Vector3.new(W.PLOT_SIZE + 10, 2, W.PLOT_SIZE + 10),
 		CFrame.new(center.X, W.PLAZA_TOP_Y - 1.4, center.Z), STONE_BORDER, model)
-	makePart("Surface", Vector3.new(W.PLOT_SIZE, 2, W.PLOT_SIZE),
+	local surface = makePart("Surface", Vector3.new(W.PLOT_SIZE, 2, W.PLOT_SIZE),
 		CFrame.new(center.X, W.PLAZA_TOP_Y - 1, center.Z), STONE_SURFACE, model)
+	model.PrimaryPart = surface
+
+	-- Occupancy is exposed as an attribute so other systems (e.g. PathGuideService)
+	-- can find free plots without coupling to PlotService internals.
+	model:SetAttribute("Occupied", false)
+	CollectionService:AddTag(model, "Plot")
 
 	local machinesFolder = Instance.new("Folder")
 	machinesFolder.Name = "Machines"
 	machinesFolder.Parent = model
 
 	plots[index] = {
+		model = model,
 		center = center,
 		plotCF = plotBaseCF(center),
 		machinesFolder = machinesFolder,
@@ -150,8 +158,8 @@ local function rebuildMachines(player: Player, index: number)
 
 	for _, m in profile.machines do
 		local def = MachineData[m.id]
-		if def and typeof(m.cf) == "CFrame" then
-			local worldCF = plot.plotCF * m.cf
+		if def and m.x and m.z then
+			local worldCF = plot.plotCF * CFrame.new(m.x, 0, m.z)
 			local model = MachineModel.build(def, worldCF)
 			model.Parent = plot.machinesFolder
 		end
@@ -165,6 +173,7 @@ function PlotService.tryClaim(player: Player, index: number): boolean
 
 	plot.ownerUserId = player.UserId
 	playerPlot[player.UserId] = index
+	if plot.model then plot.model:SetAttribute("Occupied", true) end
 	updateSign(index)
 	rebuildMachines(player, index)
 	notifyPlot(player)
@@ -178,6 +187,7 @@ local function releasePlot(userId: number)
 	local plot = plots[index]
 	if plot then
 		plot.ownerUserId = nil
+		if plot.model then plot.model:SetAttribute("Occupied", false) end
 		plot.machinesFolder:ClearAllChildren()
 		updateSign(index)
 	end
