@@ -10,7 +10,17 @@ local GameConfig   = require(Shared.constants.GameConfig)
 local DATASTORE_KEY_PREFIX = "Player_v1_"
 local AUTO_SAVE_INTERVAL   = 60 -- seconds
 
-local store = DataStoreService:GetDataStore("CasinoEmpire_v1")
+local store
+do
+	local ok, result = pcall(function()
+		return DataStoreService:GetDataStore("CasinoEmpire_v1")
+	end)
+	if ok then
+		store = result
+	else
+		warn("DataManager: DataStore unavailable (unpublished place or API access disabled), running with in-memory profiles only:", result)
+	end
+end
 
 local profiles: { [number]: ProfileTypes.PlayerProfile } = {}
 local dirty: { [number]: boolean } = {}
@@ -19,12 +29,14 @@ local function load(player: Player): ProfileTypes.PlayerProfile
 	local key = DATASTORE_KEY_PREFIX .. player.UserId
 	local data
 
-	local ok, err = pcall(function()
-		data = store:GetAsync(key)
-	end)
+	if store then
+		local ok, err = pcall(function()
+			data = store:GetAsync(key)
+		end)
 
-	if not ok then
-		warn("DataManager: load failed for", player.Name, err)
+		if not ok then
+			warn("DataManager: load failed for", player.Name, err)
+		end
 	end
 
 	local profile: ProfileTypes.PlayerProfile = data or ProfileTypes.newProfile()
@@ -45,6 +57,10 @@ end
 local function save(player: Player)
 	local profile = profiles[player.UserId]
 	if not profile then return end
+
+	if not store then
+		return
+	end
 
 	local key = DATASTORE_KEY_PREFIX .. player.UserId
 	local ok, err = pcall(function()

@@ -1,9 +1,16 @@
 -- Player data schema. Keep this in sync with DataManager defaults.
 
 export type MachineInstance = {
+	uid: string,      -- unique id, used to identify a placed machine for pickup/sell
 	id: string,       -- MachineData key e.g. "SlotMachine"
 	level: number,
-	cf: CFrame,
+	x: number,        -- plot-relative offset (DataStore-serializable; no CFrame)
+	z: number,
+}
+
+export type InventoryItem = {
+	id: string,       -- MachineData key
+	level: number,
 }
 
 export type StaffSlot = {
@@ -30,6 +37,7 @@ export type PlayerProfile = {
 
 	-- Casino floor
 	machines: { MachineInstance },
+	inventory: { InventoryItem }, -- machines picked up off the floor, ready to re-place/sell
 	casinoRating: number,       -- 1–5
 
 	-- Staff
@@ -67,6 +75,7 @@ local function newProfile(): PlayerProfile
 		phase = 1,
 
 		machines = {},
+		inventory = {},
 		casinoRating = 1,
 
 		staff = {},
