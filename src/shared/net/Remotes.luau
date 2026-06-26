@@ -42,7 +42,14 @@ return {
 	PlacementResult    = Event("PlacementResult"),    -- server → client: (success: bool, reason: string?)
 
 	-- Plots
-	PlotAssigned       = Event("PlotAssigned"),       -- server → client: ({ claimed, center?, halfSize?, topY? })
+	PlotAssigned       = Event("PlotAssigned"),       -- server → client: ({ claimed, center?, halfSize?, topY?, plotName? })
+
+	-- Machine management (pickup / sell / inventory)
+	RequestPickupMachine     = Func("RequestPickupMachine"),     -- client → server: (uid) → { success, reason? }
+	RequestSellMachine       = Func("RequestSellMachine"),       -- client → server: (uid) → { success, reason?, refund? }
+	RequestSellInventory     = Func("RequestSellInventory"),     -- client → server: (invIndex) → { success, reason?, refund? }
+	RequestPlaceFromInventory = Event("RequestPlaceFromInventory"), -- client → server: (invIndex, machineId, cf)
+	InventoryUpdated         = Event("InventoryUpdated"),        -- server → client: (items: { { id, level } })
 
 	-- Upgrades
 	RequestUpgrade     = Event("RequestUpgrade"),     -- client → server: (upgradeId: string)

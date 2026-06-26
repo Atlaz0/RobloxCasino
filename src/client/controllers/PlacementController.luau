@@ -5,20 +5,28 @@ local RunService       = game:GetService("RunService")
 local Shared        = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Remotes       = require(Shared.net.Remotes)
 local MachineData   = require(Shared.constants.MachineData)
+local GameConfig    = require(Shared.constants.GameConfig)
 local MachineAssets = require(Shared.MachineAssets)
 
 local player = Players.LocalPlayer
 local mouse  = player:GetMouse()
 
-local GRID_SIZE = 4
+local GRID_SIZE = 2
+local MIN_SPACING = GameConfig.MACHINE_MIN_SPACING
 local GHOST_GREEN = Color3.fromRGB(80, 255, 140)
 local GHOST_RED   = Color3.fromRGB(255, 90, 90)
 
 local activeMachineId: string? = nil
+local placingInvIndex: number? = nil -- set when placing from the inventory
 local ghostModel: Model? = nil
 local plotInfo = { claimed = false } -- updated by PlotAssigned
 
--- Simple screen toast for feedback (placement errors, hints).
+-- Validity computed each frame, consumed by the click handler.
+local lastPoint: Vector3? = nil
+local lastInside = false
+local lastOverlap = false
+
+-- Simple screen toast for feedback.
 local toastLabel: TextLabel
 local function ensureToast()
 	if toastLabel then return end
@@ -63,8 +71,6 @@ local function clearGhost()
 	end
 end
 
--- Makes a cloned model into a ghost: translucent, non-colliding, and transparent to the
--- mouse ray (CanQuery = false), with a green/red validity Highlight.
 local function styleGhost(model: Model)
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") then
@@ -87,25 +93,21 @@ local function styleGhost(model: Model)
 	hl.Parent = model
 end
 
-local function beginPlacement(machineId: string)
+-- Builds the translucent ghost for a machine id. Returns false if not possible.
+local function startGhost(machineId: string): boolean
 	clearGhost()
 	local def = MachineData[machineId]
-	if not def then return end
-
+	if not def then return false end
 	if not plotInfo.claimed then
-		toast("Claim a plot first — walk onto a plot pad!")
-		return
+		toast("Claim a plot first — walk through a plot's doorway!")
+		return false
 	end
 
-	activeMachineId = machineId
-
-	-- Ghost = a translucent clone of the real model so it matches the placed shape.
 	local template = MachineAssets.find(def.modelName)
 	if template then
 		ghostModel = template:Clone()
-		MachineAssets.stripScripts(ghostModel) -- never run embedded model scripts (even client-side)
+		MachineAssets.stripScripts(ghostModel)
 	else
-		-- Fallback if the model is missing: a simple box.
 		ghostModel = Instance.new("Model")
 		local box = Instance.new("Part")
 		box.Size = Vector3.new(6, 10, 6)
@@ -116,15 +118,32 @@ local function beginPlacement(machineId: string)
 
 	styleGhost(ghostModel)
 	ghostModel.Parent = workspace
+	return true
+end
+
+-- Buy + place a new machine from the shop.
+local function beginPlacement(machineId: string)
+	if startGhost(machineId) then
+		activeMachineId = machineId
+		placingInvIndex = nil
+	end
+end
+
+-- Re-place a machine that's sitting in the inventory.
+local function beginInventoryPlacement(invIndex: number, machineId: string)
+	if startGhost(machineId) then
+		activeMachineId = machineId
+		placingInvIndex = invIndex
+	end
 end
 
 local function cancelPlacement()
 	clearGhost()
 	activeMachineId = nil
+	placingInvIndex = nil
 end
 
--- Snap to grid and clamp inside the plot square. Returns the placement point + whether
--- it is inside the plot.
+-- Snap to grid and clamp inside the plot square.
 local function resolvePoint(worldPos: Vector3): (Vector3, boolean)
 	local cx, cz = plotInfo.center.X, plotInfo.center.Z
 	local half = plotInfo.halfSize
@@ -139,18 +158,69 @@ local function resolvePoint(worldPos: Vector3): (Vector3, boolean)
 	return Vector3.new(x, plotInfo.topY, z), inside
 end
 
+-- The Machines folder of the local player's claimed plot.
+local function plotMachines(): Folder?
+	if not plotInfo.plotName then return nil end
+	local plots = workspace:FindFirstChild("Plots")
+	local plot = plots and plots:FindFirstChild(plotInfo.plotName)
+	return plot and plot:FindFirstChild("Machines") :: Folder?
+end
+
+-- True if the (already-positioned) ghost overlaps an existing machine on the plot.
+local function ghostOverlaps(): boolean
+	if not ghostModel then return false end
+	local folder = plotMachines()
+	if not folder then return false end
+
+	local minX, maxX, minZ, maxZ = MachineAssets.worldAABB(ghostModel)
+	for _, other in folder:GetChildren() do
+		if other:IsA("Model") then
+			local oMinX, oMaxX, oMinZ, oMaxZ = MachineAssets.worldAABB(other)
+			if MachineAssets.footprintsOverlap(minX, maxX, minZ, maxZ, oMinX, oMaxX, oMinZ, oMaxZ, MIN_SPACING) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function confirmPlace()
+	if not activeMachineId or not lastPoint then return end
+	if not lastInside then
+		toast("Place it on your plot")
+		return
+	end
+	if lastOverlap then
+		toast("Too close to another machine")
+		return
+	end
+
+	local cf = CFrame.new(lastPoint.X, plotInfo.topY, lastPoint.Z)
+	if placingInvIndex then
+		Remotes.RequestPlaceFromInventory:FireServer(placingInvIndex, activeMachineId, cf)
+	else
+		Remotes.RequestPlace:FireServer(activeMachineId, cf)
+	end
+	cancelPlacement()
+end
+
 local function init()
 	RunService.RenderStepped:Connect(function()
 		if not activeMachineId or not ghostModel or not plotInfo.claimed then return end
 		local hit = mouse.Hit
 		if not hit then return end
+
 		local point, inside = resolvePoint(hit.Position)
-		-- Ground the ghost on the plot surface at the snapped point.
 		MachineAssets.ground(ghostModel, point.X, point.Z, plotInfo.topY)
+		local overlap = ghostOverlaps()
+
+		lastPoint, lastInside, lastOverlap = point, inside, overlap
+
+		local valid = inside and not overlap
 		local hl = ghostModel:FindFirstChild("GhostHighlight")
 		if hl then
-			hl.FillColor = inside and GHOST_GREEN or GHOST_RED
-			hl.OutlineColor = inside and GHOST_GREEN or GHOST_RED
+			hl.FillColor = valid and GHOST_GREEN or GHOST_RED
+			hl.OutlineColor = valid and GHOST_GREEN or GHOST_RED
 		end
 	end)
 
@@ -159,15 +229,7 @@ local function init()
 		if not activeMachineId then return end
 
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			local hit = mouse.Hit
-			if not hit then return end
-			local point, inside = resolvePoint(hit.Position)
-			if not inside then
-				toast("Place it on your plot")
-				return
-			end
-			Remotes.RequestPlace:FireServer(activeMachineId, CFrame.new(point.X, plotInfo.topY, point.Z))
-			cancelPlacement()
+			confirmPlace()
 		elseif input.KeyCode == Enum.KeyCode.Escape then
 			cancelPlacement()
 		end
@@ -188,8 +250,9 @@ local function init()
 end
 
 return {
-	init            = init,
-	beginPlacement  = beginPlacement,
-	cancelPlacement = cancelPlacement,
-	isPlotClaimed   = function() return plotInfo.claimed end,
+	init                   = init,
+	beginPlacement         = beginPlacement,
+	beginInventoryPlacement = beginInventoryPlacement,
+	cancelPlacement        = cancelPlacement,
+	isPlotClaimed          = function() return plotInfo.claimed end,
 }

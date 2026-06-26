@@ -33,6 +33,15 @@ GameConfig.PASSIVE_INCOME_INTERVAL = 1        -- seconds between income ticks
 GameConfig.STARTING_CHIPS           = 100
 GameConfig.MAX_LOT_MACHINES         = 50
 
+-- Placement / machine management
+GameConfig.MACHINE_MIN_SPACING   = 1   -- min gap (studs) between machine bounding boxes
+GameConfig.SELL_REFUND_FRACTION  = 0.5 -- chips back when selling a machine, as a fraction of cost
+
+-- Chips refunded for selling a machine of the given definition.
+function GameConfig.machineSellValue(def): number
+	return math.floor(def.cost * GameConfig.SELL_REFUND_FRACTION)
+end
+
 -- Prestige
 GameConfig.PRESTIGE_COOLDOWN        = 300      -- seconds
 GameConfig.PRESTIGE_MULTIPLIER_STEP = 0.10     -- +10% per prestige level

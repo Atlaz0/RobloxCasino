@@ -2,6 +2,8 @@
 -- templates, so machines are constructed from parts). Used by PlacementService when a
 -- machine is bought, and by PlotService when rebuilding a returning player's machines.
 
+local CollectionService = game:GetService("CollectionService")
+
 local Shared        = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local FormatNumber  = require(Shared.utils.FormatNumber)
 local MachineAssets = require(Shared.MachineAssets)
@@ -24,7 +26,43 @@ local BASE_HEIGHT = 1
 local BODY_HEIGHT = 7
 local SCREEN_HEIGHT = 2
 
+-- The N biggest BaseParts of a model, by volume (descending).
+local function biggestParts(model: Model, n: number): { BasePart }
+	local parts = {}
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			table.insert(parts, d)
+		end
+	end
+	table.sort(parts, function(a, b)
+		return (a.Size.X * a.Size.Y * a.Size.Z) > (b.Size.X * b.Size.Y * b.Size.Z)
+	end)
+	local out = {}
+	for i = 1, math.min(n, #parts) do
+		out[i] = parts[i]
+	end
+	return out
+end
+
 local MachineModel = {}
+
+-- Tags a placed machine with its uid/machineId and makes the whole machine clickable by
+-- putting a ClickDetector on each of its largest parts (so the click target covers the
+-- body, not just the top). Called after build() for every placed machine.
+function MachineModel.finalize(model: Model, uid: string, machineId: string)
+	model:SetAttribute("Uid", uid)
+	model:SetAttribute("MachineId", machineId)
+
+	for _, part in biggestParts(model, 12) do
+		if not part:FindFirstChildOfClass("ClickDetector") then
+			local cd = Instance.new("ClickDetector")
+			cd.Name = "MachineClick"
+			cd.MaxActivationDistance = 40
+			cd.Parent = part
+			CollectionService:AddTag(cd, "MachineClick")
+		end
+	end
+end
 
 -- `baseCF` is the CFrame of the machine's base center (already on the plot surface).
 function MachineModel.build(def, baseCF: CFrame): Model

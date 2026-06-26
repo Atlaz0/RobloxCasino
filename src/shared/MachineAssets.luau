@@ -65,6 +65,38 @@ function MachineAssets.worldBottom(model: Model): number
 	return minY == math.huge and 0 or minY
 end
 
+-- World-axis-aligned XZ footprint (minX, maxX, minZ, maxZ) across every part corner.
+-- Orientation-proof, unlike Model:GetBoundingBox() which aligns to the model's pivot.
+function MachineAssets.worldAABB(model: Model): (number, number, number, number)
+	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+	for _, p in model:GetDescendants() do
+		if p:IsA("BasePart") then
+			local cf, sz = p.CFrame, p.Size
+			for _, sx in { -1, 1 } do
+				for _, sy in { -1, 1 } do
+					for _, sz2 in { -1, 1 } do
+						local c = cf * Vector3.new(sx * sz.X / 2, sy * sz.Y / 2, sz2 * sz.Z / 2)
+						if c.X < minX then minX = c.X end
+						if c.X > maxX then maxX = c.X end
+						if c.Z < minZ then minZ = c.Z end
+						if c.Z > maxZ then maxZ = c.Z end
+					end
+				end
+			end
+		end
+	end
+	if minX == math.huge then
+		return 0, 0, 0, 0
+	end
+	return minX, maxX, minZ, maxZ
+end
+
+-- True if two XZ footprints overlap once each is expanded by `gap` on every side.
+function MachineAssets.footprintsOverlap(aMinX, aMaxX, aMinZ, aMaxZ, bMinX, bMaxX, bMinZ, bMaxZ, gap: number): boolean
+	return (aMinX - gap) < bMaxX and (aMaxX + gap) > bMinX
+		and (aMinZ - gap) < bMaxZ and (aMaxZ + gap) > bMinZ
+end
+
 -- Positions `model` so its bottom rests on `surfaceY` at (x, z), preserving orientation.
 function MachineAssets.ground(model: Model, x: number, z: number, surfaceY: number)
 	local center = model:GetBoundingBox().Position
