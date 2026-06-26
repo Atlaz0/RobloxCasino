@@ -32,20 +32,6 @@
 
     "Workspace": {
       "$properties": {
-<<<<<<< HEAD
-        "FilteringEnabled": true
-      },
-      "Baseplate": {
-        "$className": "Part",
-        "$properties": {
-          "Anchored": true,
-          "Color": [0.15, 0.12, 0.10],
-          "Locked": true,
-          "Position": [0, -10, 0],
-          "Size": [1024, 20, 1024]
-        }
-      },
-=======
         "FilteringEnabled": true,
         "StreamingEnabled": false
       }
@@ -55,7 +41,6 @@
       "Assets": {
         "$path": "assets/models"
       }
->>>>>>> 19b3fbb93fc4996a7899dc319aa85775a4c31a66
     },
 
     "Lighting": {

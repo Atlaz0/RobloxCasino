@@ -33,12 +33,6 @@ GameConfig.PASSIVE_INCOME_INTERVAL = 1        -- seconds between income ticks
 GameConfig.STARTING_CHIPS           = 100
 GameConfig.MAX_LOT_MACHINES         = 50
 
-<<<<<<< HEAD
--- Manual starter slot machine (active income — press to earn)
-GameConfig.MANUAL_SLOT_REWARD       = 2        -- chips per spin (guaranteed)
-GameConfig.MANUAL_SLOT_JACKPOT      = 50       -- bonus chips when all 3 reels match
-GameConfig.MANUAL_SLOT_COOLDOWN     = 0.25     -- seconds between presses per player
-=======
 -- Placement / machine management
 GameConfig.MACHINE_MIN_SPACING   = 1   -- min gap (studs) between machine bounding boxes
 GameConfig.SELL_REFUND_FRACTION  = 0.5 -- chips back when selling a machine, as a fraction of cost
@@ -47,7 +41,6 @@ GameConfig.SELL_REFUND_FRACTION  = 0.5 -- chips back when selling a machine, as 
 function GameConfig.machineSellValue(def): number
 	return math.floor(def.cost * GameConfig.SELL_REFUND_FRACTION)
 end
->>>>>>> 19b3fbb93fc4996a7899dc319aa85775a4c31a66
 
 -- Prestige
 GameConfig.PRESTIGE_COOLDOWN        = 300      -- seconds
