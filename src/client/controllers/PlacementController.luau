@@ -107,7 +107,7 @@ local function startGhost(machineId: string): boolean
 	if template then
 		ghostModel = template:Clone()
 		MachineAssets.stripScripts(ghostModel)
-		ghostModel:ScaleTo(1.2) -- match server-side MACHINE_SCALE
+		MachineAssets.scale(ghostModel, 1.2) -- match server-side MACHINE_SCALE
 	else
 		ghostModel = Instance.new("Model")
 		local box = Instance.new("Part")

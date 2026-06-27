@@ -97,6 +97,21 @@ function MachineAssets.footprintsOverlap(aMinX, aMaxX, aMinZ, aMaxZ, bMinX, bMax
 		and (aMinZ - gap) < bMaxZ and (aMaxZ + gap) > bMinZ
 end
 
+-- Uniformly scales `model` in-place by `factor` around its bounding-box centre.
+-- Safer than Model:ScaleTo() which breaks models whose pivot is not centred.
+function MachineAssets.scale(model: Model, factor: number)
+	local center = model:GetBoundingBox().Position
+	for _, desc in model:GetDescendants() do
+		if desc:IsA("BasePart") then
+			local cf = desc.CFrame
+			local newPos = center + (cf.Position - center) * factor
+			local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = cf:GetComponents()
+			desc.CFrame = CFrame.new(newPos.X, newPos.Y, newPos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22)
+			desc.Size = desc.Size * factor
+		end
+	end
+end
+
 -- Positions `model` so its bottom rests on `surfaceY` at (x, z), preserving orientation.
 function MachineAssets.ground(model: Model, x: number, z: number, surfaceY: number)
 	local center = model:GetBoundingBox().Position

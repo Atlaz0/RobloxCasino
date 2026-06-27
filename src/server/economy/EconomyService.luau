@@ -69,6 +69,9 @@ local function init()
 					local rate = hasClaimed and calcIncomePerSecond(profile) or 0
 					if hasClaimed then
 						awardChips(player, rate * GameConfig.PASSIVE_INCOME_INTERVAL)
+					else
+						-- No plot: no passive income, but still push current balance so HUD stays accurate
+						Remotes.ChipsUpdated:FireClient(player, profile.chips)
 					end
 					Remotes.IncomeRateUpdated:FireClient(player, rate)
 				end

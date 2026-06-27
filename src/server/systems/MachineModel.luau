@@ -74,7 +74,7 @@ function MachineModel.build(def, baseCF: CFrame): Model
 		local clone = template:Clone()
 		MachineAssets.stripScripts(clone)
 		anchorAll(clone)
-		clone:ScaleTo(MACHINE_SCALE) -- scale before grounding so worldBottom() uses scaled size
+		MachineAssets.scale(clone, MACHINE_SCALE) -- scale around bbox centre before grounding
 		MachineAssets.ground(clone, baseCF.Position.X, baseCF.Position.Z, baseCF.Y - 0.5)
 		if not clone.PrimaryPart then
 			clone.PrimaryPart = clone:FindFirstChildWhichIsA("BasePart")
