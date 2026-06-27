@@ -6,7 +6,7 @@ GameConfig.WORLD = {
 	PLAZA_TOP_Y   = 1,    -- world Y of the raised stone plaza/road surface
 	PLAZA_RADIUS  = 70,   -- central spawn plaza radius
 	ROAD_WIDTH    = 44,   -- width of each of the 4 roads
-	ROAD_LENGTH   = 280,  -- length of each road from plaza edge to its plot
+	ROAD_LENGTH   = 180,  -- length of each road from plaza edge to its plot
 	PLOT_SIZE     = 150,  -- side length of each square tycoon plot
 	PLOT_COUNT    = 4,    -- one plot at the end of each road (+X, -X, +Z, -Z)
 }

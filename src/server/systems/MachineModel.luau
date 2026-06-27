@@ -22,8 +22,6 @@ local PHASE_COLORS = {
 	[3] = Color3.fromRGB(60, 220, 220),  -- cyan
 }
 
-local MACHINE_SCALE = 1.2
-
 local BASE_HEIGHT = 1
 local BODY_HEIGHT = 7
 local SCREEN_HEIGHT = 2
@@ -74,7 +72,6 @@ function MachineModel.build(def, baseCF: CFrame): Model
 		local clone = template:Clone()
 		MachineAssets.stripScripts(clone)
 		anchorAll(clone)
-		MachineAssets.scale(clone, MACHINE_SCALE) -- scale around bbox centre before grounding
 		MachineAssets.ground(clone, baseCF.Position.X, baseCF.Position.Z, baseCF.Y - 0.5)
 		if not clone.PrimaryPart then
 			clone.PrimaryPart = clone:FindFirstChildWhichIsA("BasePart")
