@@ -38,7 +38,7 @@ screenGui.Parent = playerGui
 local toggleBtn = UIStyle.toggleButton({
 	name = "InventoryToggle",
 	text = "Stash",
-	accent = UIStyle.ACCENT,
+	accent = UIStyle.BTN_BLUE,
 	position = UDim2.new(0, 16, 1, -130),
 })
 toggleBtn.Parent = screenGui
@@ -194,9 +194,9 @@ local function rebuild()
 			card.Parent = scroll
 			do
 				corner(card, 12)
-				stroke(card, Color3.fromRGB(74, 86, 82), 1)
+				stroke(card, UIStyle.CARD_EDGE, 1)
 				local g = Instance.new("UIGradient")
-				g.Color = ColorSequence.new(UIStyle.PANEL_BOTTOM, CARD_BG)
+				g.Color = ColorSequence.new(CARD_BG, CARD_BG)
 				g.Rotation = 0
 				g.Parent = card
 			end

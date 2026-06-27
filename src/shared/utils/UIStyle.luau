@@ -9,10 +9,11 @@ local UIStyle = {}
 -- Palette ------------------------------------------------------------------
 -- Muted natural theme: dark slate grey, dim grey, ebony, ivory, dry sage.
 UIStyle.BG_DARK      = Color3.fromRGB(54, 69, 59)    -- Dark Slate Grey
-UIStyle.BG_PANEL     = Color3.fromRGB(89, 104, 105)  -- Dim Grey
-UIStyle.CARD_BG      = Color3.fromRGB(101, 116, 113) -- a touch lighter than the panel
-UIStyle.PANEL_TOP    = Color3.fromRGB(96, 111, 110)  -- subtle same-family panel gradient
-UIStyle.PANEL_BOTTOM = Color3.fromRGB(82, 95, 92)
+UIStyle.BG_PANEL     = Color3.fromRGB(80, 94, 92)    -- Dim Grey (darker so cards separate)
+UIStyle.CARD_BG      = Color3.fromRGB(110, 126, 122) -- clearly lighter than the panel
+UIStyle.CARD_EDGE    = Color3.fromRGB(134, 150, 145) -- subtle light border on cards
+UIStyle.PANEL_TOP    = Color3.fromRGB(84, 98, 96)    -- subtle same-family panel gradient
+UIStyle.PANEL_BOTTOM = Color3.fromRGB(66, 79, 77)
 UIStyle.HEADER       = Color3.fromRGB(62, 73, 68)    -- solid slate-grey header
 
 -- Brighter action-button colours: panels/text stay muted, but buttons pop.

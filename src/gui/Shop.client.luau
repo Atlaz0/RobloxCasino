@@ -72,7 +72,7 @@ screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 local toggleBtn = UIStyle.toggleButton({
 	name = "ShopToggle",
 	text = "Shop",
-	accent = UIStyle.GOLD,
+	accent = UIStyle.BTN_GOLD,
 	position = UDim2.new(1, -170, 1, -72),
 })
 toggleBtn.Parent = screenGui
@@ -168,24 +168,14 @@ local function phaseLabel(phase: number): Frame
 	local names = { "Phase 1 — The Floor", "Phase 2 — The Resort", "Phase 3 — The Strip" }
 
 	local lf = Instance.new("Frame")
-	lf.Size = UDim2.new(1, 0, 0, 28)
-	lf.BackgroundColor3 = UIStyle.PANEL_BOTTOM
+	lf.Size = UDim2.new(1, 0, 0, 26)
+	lf.BackgroundTransparency = 1
 	lf.BorderSizePixel = 0
 	lf.LayoutOrder = phase * 1000 - 1
-	corner(lf, 6)
-	stroke(lf, phaseColor, 1)
-
-	local accentBar = Instance.new("Frame")
-	accentBar.Size = UDim2.new(0, 6, 1, 0)
-	accentBar.Position = UDim2.new(0, 0, 0, 0)
-	accentBar.BackgroundColor3 = phaseColor
-	accentBar.BorderSizePixel = 0
-	accentBar.Parent = lf
-	corner(accentBar, 4)
 
 	local lt = Instance.new("TextLabel")
-	lt.Size = UDim2.new(1, -18, 1, 0)
-	lt.Position = UDim2.new(0, 14, 0, 0)
+	lt.Size = UDim2.new(1, -8, 1, -4)
+	lt.Position = UDim2.new(0, 4, 0, 0)
 	lt.BackgroundTransparency = 1
 	lt.Text = names[phase] or ("Phase " .. phase)
 	lt.TextColor3 = phaseColor
@@ -194,6 +184,16 @@ local function phaseLabel(phase: number): Frame
 	lt.TextXAlignment = Enum.TextXAlignment.Left
 	lt.Parent = lf
 	UIStyle.maxText(lt, 15)
+
+	-- A thin underline instead of a muddy boxed-in label.
+	local underline = Instance.new("Frame")
+	underline.Size = UDim2.new(1, -4, 0, 2)
+	underline.Position = UDim2.new(0, 4, 1, -2)
+	underline.BackgroundColor3 = phaseColor
+	underline.BackgroundTransparency = 0.35
+	underline.BorderSizePixel = 0
+	underline.Parent = lf
+	corner(underline, 1)
 
 	return lf
 end
@@ -214,6 +214,7 @@ for i, def in ipairs(sortedMachines) do
 	card.LayoutOrder = def.phase * 1000 + i
 	card.Parent = scroll
 	corner(card, 12)
+	stroke(card, UIStyle.CARD_EDGE, 1)
 
 	local cardAccentBar = Instance.new("Frame")
 	cardAccentBar.Size = UDim2.new(0, 5, 1, 0)
@@ -258,6 +259,9 @@ for i, def in ipairs(sortedMachines) do
 	corner(buyBtn, 10)
 	gradient(buyBtn, UIStyle.BTN_GOLD_DK, UIStyle.BTN_GOLD, 90)
 
+	local buyScale = Instance.new("UIScale")
+	buyScale.Parent = buyBtn
+
 	-- Chip on the left, price filling the rest — laid out so they never overlap.
 	local chip = UIStyle.chipIcon(20)
 	chip.AnchorPoint = Vector2.new(0, 0.5)
@@ -283,11 +287,13 @@ for i, def in ipairs(sortedMachines) do
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundColor3 = UIStyle.BTN_GOLD_LT,
 		}):Play()
+		TweenService:Create(buyScale, TweenInfo.new(0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1.06 }):Play()
 	end)
 	buyBtn.MouseLeave:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundColor3 = UIStyle.BTN_GOLD_DK,
 		}):Play()
+		TweenService:Create(buyScale, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	end)
 
 	local machineId = def.id

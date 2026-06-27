@@ -38,7 +38,7 @@ screenGui.Parent = playerGui
 local toggleBtn = UIStyle.toggleButton({
 	name = "DailyToggle",
 	text = "Daily",
-	accent = UIStyle.GOLD,
+	accent = UIStyle.BTN_GREEN,
 	position = UDim2.new(0, 16, 1, -72),
 })
 toggleBtn.Parent = screenGui
@@ -152,11 +152,22 @@ for i = 1, 7 do
 	table.insert(streakDots, {frame = dot, stroke = ds, label = dl})
 end
 
+-- Caption above the reward amount
+local rewardCaption = Instance.new("TextLabel")
+rewardCaption.Size = UDim2.new(1, -24, 0, 16)
+rewardCaption.Position = UDim2.new(0, 12, 0, 104)
+rewardCaption.BackgroundTransparency = 1
+rewardCaption.Text = "TODAY'S REWARD"
+rewardCaption.TextColor3 = UIStyle.TEXT_DIM
+rewardCaption.Font = Enum.Font.GothamBold
+rewardCaption.TextSize = 13
+rewardCaption.Parent = panel
+
 -- Reward row (drawn chip icon + text, no emoji)
 local rewardHolder = Instance.new("Frame")
 rewardHolder.Name = "RewardHolder"
 rewardHolder.Size = UDim2.new(1, -24, 0, 60)
-rewardHolder.Position = UDim2.new(0, 12, 0, 110)
+rewardHolder.Position = UDim2.new(0, 12, 0, 126)
 rewardHolder.BackgroundTransparency = 1
 rewardHolder.Parent = panel
 do
@@ -183,6 +194,18 @@ rewardLabel.TextSize = 26
 rewardLabel.Font = Enum.Font.GothamBlack
 rewardLabel.TextXAlignment = Enum.TextXAlignment.Left
 rewardLabel.Parent = rewardHolder
+
+-- "Day X of 7" progress line, fills the space between the reward and the button.
+local dayLabel = Instance.new("TextLabel")
+dayLabel.Name = "DayLabel"
+dayLabel.Size = UDim2.new(1, -24, 0, 22)
+dayLabel.Position = UDim2.new(0, 12, 0, 200)
+dayLabel.BackgroundTransparency = 1
+dayLabel.Text = "Day 1 of 7"
+dayLabel.TextColor3 = UIStyle.ACCENT_LT
+dayLabel.Font = Enum.Font.GothamMedium
+dayLabel.TextSize = 16
+dayLabel.Parent = panel
 
 -- Claim button
 local claimBtn = Instance.new("TextButton")
@@ -247,6 +270,9 @@ local function refreshUI()
 	rewardLabel.Text = FormatNumber.format(status.nextReward) .. " chips"
 	readyBadge.Visible = status.canClaim
 	updateStreakDots()
+
+	local day = status.canClaim and math.min(status.streak + 1, 7) or math.max(status.streak, 1)
+	dayLabel.Text = "Day " .. day .. " of 7"
 
 	if status.canClaim then
 		claimBtn.Text = "Claim Reward"
