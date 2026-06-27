@@ -189,8 +189,8 @@ local claimBtn = Instance.new("TextButton")
 claimBtn.Name = "ClaimButton"
 claimBtn.Size = UDim2.new(1, -24, 0, 56)
 claimBtn.Position = UDim2.new(0, 12, 1, -68)
-local CLAIM_READY    = Color3.fromRGB(96, 150, 96)
-local CLAIM_READY_LT = Color3.fromRGB(124, 178, 116)
+local CLAIM_READY    = UIStyle.BTN_GREEN_DK
+local CLAIM_READY_LT = UIStyle.BTN_GREEN_LT
 local CLAIM_WAIT     = Color3.fromRGB(70, 82, 78)
 
 claimBtn.BackgroundColor3 = CLAIM_READY
@@ -213,7 +213,7 @@ end
 
 -- Static stroke when claimable (no pulsing).
 local claimStroke = Instance.new("UIStroke")
-claimStroke.Color = UIStyle.ACCENT_LT
+claimStroke.Color = UIStyle.BTN_GREEN_LT
 claimStroke.Thickness = 0
 claimStroke.Parent = claimBtn
 

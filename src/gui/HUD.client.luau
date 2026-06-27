@@ -23,8 +23,8 @@ screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
-topBar.Size = UDim2.new(0, 460, 0, 72)
-topBar.Position = UDim2.new(0.5, -230, 0, 14)
+topBar.Size = UDim2.new(0, 400, 0, 72)
+topBar.Position = UDim2.new(0.5, -200, 0, 14)
 topBar.BackgroundColor3 = BG_DARK
 topBar.BorderSizePixel = 0
 topBar.Parent = screenGui
@@ -41,8 +41,8 @@ chipIcon.Parent = topBar
 
 local chipsLabel = Instance.new("TextLabel")
 chipsLabel.Name = "ChipsLabel"
-chipsLabel.Size = UDim2.new(0, 220, 1, 0)
-chipsLabel.Position = UDim2.new(0, 52, 0, 0)
+chipsLabel.Size = UDim2.new(0, 196, 1, 0)
+chipsLabel.Position = UDim2.new(0, 50, 0, 0)
 chipsLabel.BackgroundTransparency = 1
 chipsLabel.Text = "0"
 chipsLabel.TextColor3 = GOLD
@@ -56,7 +56,7 @@ chipsLabel.Parent = topBar
 local divider = Instance.new("Frame")
 divider.Name = "Divider"
 divider.Size = UDim2.new(0, 1, 0, 36)
-divider.Position = UDim2.new(0, 296, 0.5, -18)
+divider.Position = UDim2.new(0, 250, 0.5, -18)
 divider.BackgroundColor3 = DIVIDER_COL
 divider.BorderSizePixel = 0
 divider.ZIndex = 3
@@ -64,8 +64,8 @@ divider.Parent = topBar
 
 local incomeLabel = Instance.new("TextLabel")
 incomeLabel.Name = "IncomeLabel"
-incomeLabel.Size = UDim2.new(0, 148, 1, 0)
-incomeLabel.Position = UDim2.new(0, 306, 0, 0)
+incomeLabel.Size = UDim2.new(0, 130, 1, 0)
+incomeLabel.Position = UDim2.new(0, 260, 0, 0)
 incomeLabel.BackgroundTransparency = 1
 incomeLabel.Text = "+0/s"
 incomeLabel.TextColor3 = NEON_GREEN
@@ -91,7 +91,7 @@ topBar.MouseLeave:Connect(function()
 end)
 
 Remotes.ChipsUpdated.OnClientEvent:Connect(function(total: number)
-	chipsLabel.Text = FormatNumber.format(total)
+	chipsLabel.Text = FormatNumber.formatPrecise(total)
 end)
 
 Remotes.IncomeRateUpdated.OnClientEvent:Connect(function(perSecond: number)

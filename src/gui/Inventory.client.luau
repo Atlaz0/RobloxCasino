@@ -233,7 +233,7 @@ local function rebuild()
 			local placeBtn = Instance.new("TextButton")
 			placeBtn.Size = UDim2.new(0, 72, 0, 36)
 			placeBtn.Position = UDim2.new(1, -158, 0.5, -18)
-			placeBtn.BackgroundColor3 = UIStyle.NEON_BLUE
+			placeBtn.BackgroundColor3 = UIStyle.BTN_BLUE
 			placeBtn.BorderSizePixel = 0
 			placeBtn.Text = "Place"
 			placeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -246,24 +246,24 @@ local function rebuild()
 				corner(placeBtn, 9)
 				local g = Instance.new("UIGradient")
 				g.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, UIStyle.NEON_BLUE),
-					ColorSequenceKeypoint.new(1, Color3.fromRGB(132, 154, 162)),
+					ColorSequenceKeypoint.new(0, UIStyle.BTN_BLUE),
+					ColorSequenceKeypoint.new(1, UIStyle.BTN_BLUE_LT),
 				})
 				g.Rotation = 90
 				g.Parent = placeBtn
 			end
 			placeBtn.MouseEnter:Connect(function()
-				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(140, 162, 170)}):Play()
+				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.BTN_BLUE_LT}):Play()
 			end)
 			placeBtn.MouseLeave:Connect(function()
-				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.NEON_BLUE}):Play()
+				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.BTN_BLUE}):Play()
 			end)
 
 			-- Sell button
 			local sellBtn = Instance.new("TextButton")
 			sellBtn.Size = UDim2.new(0, 80, 0, 36)
 			sellBtn.Position = UDim2.new(1, -80, 0.5, -18)
-			sellBtn.BackgroundColor3 = UIStyle.GOLD_DEEP
+			sellBtn.BackgroundColor3 = UIStyle.BTN_GOLD_DK
 			sellBtn.BorderSizePixel = 0
 			sellBtn.Text = ""
 			sellBtn.AutoButtonColor = false
@@ -272,8 +272,8 @@ local function rebuild()
 				corner(sellBtn, 9)
 				local g = Instance.new("UIGradient")
 				g.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, UIStyle.GOLD_DEEP),
-					ColorSequenceKeypoint.new(1, UIStyle.GOLD),
+					ColorSequenceKeypoint.new(0, UIStyle.BTN_GOLD_DK),
+					ColorSequenceKeypoint.new(1, UIStyle.BTN_GOLD),
 				})
 				g.Rotation = 90
 				g.Parent = sellBtn
@@ -298,10 +298,10 @@ local function rebuild()
 			sellPrice.ZIndex = 3
 			sellPrice.Parent = sellBtn
 			sellBtn.MouseEnter:Connect(function()
-				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.GOLD}):Play()
+				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.BTN_GOLD_LT}):Play()
 			end)
 			sellBtn.MouseLeave:Connect(function()
-				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.GOLD_DEEP}):Play()
+				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.BTN_GOLD_DK}):Play()
 			end)
 
 			local capturedIndex = index

@@ -13,7 +13,19 @@ UIStyle.BG_PANEL     = Color3.fromRGB(89, 104, 105)  -- Dim Grey
 UIStyle.CARD_BG      = Color3.fromRGB(101, 116, 113) -- a touch lighter than the panel
 UIStyle.PANEL_TOP    = Color3.fromRGB(96, 111, 110)  -- subtle same-family panel gradient
 UIStyle.PANEL_BOTTOM = Color3.fromRGB(82, 95, 92)
-UIStyle.HEADER       = Color3.fromRGB(54, 69, 59)    -- solid header (Dark Slate Grey)
+UIStyle.HEADER       = Color3.fromRGB(62, 73, 68)    -- solid slate-grey header
+
+-- Brighter action-button colours: panels/text stay muted, but buttons pop.
+UIStyle.BTN_GOLD     = Color3.fromRGB(240, 195, 55)
+UIStyle.BTN_GOLD_LT  = Color3.fromRGB(255, 216, 92)
+UIStyle.BTN_GOLD_DK  = Color3.fromRGB(205, 158, 28)
+UIStyle.BTN_GREEN    = Color3.fromRGB(52, 211, 113)
+UIStyle.BTN_GREEN_LT = Color3.fromRGB(96, 240, 150)
+UIStyle.BTN_GREEN_DK = Color3.fromRGB(28, 168, 86)
+UIStyle.BTN_BLUE     = Color3.fromRGB(64, 150, 240)
+UIStyle.BTN_BLUE_LT  = Color3.fromRGB(110, 184, 255)
+UIStyle.BTN_RED      = Color3.fromRGB(224, 78, 78)
+UIStyle.BTN_RED_LT   = Color3.fromRGB(244, 110, 110)
 -- Currency coin stays gold so money reads clearly, just muted to fit the theme.
 UIStyle.GOLD       = Color3.fromRGB(214, 196, 120)
 UIStyle.GOLD_LIGHT = Color3.fromRGB(235, 224, 170)

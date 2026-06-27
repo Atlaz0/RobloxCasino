@@ -20,4 +20,19 @@ local function format(n: number): string
 	return tostring(n)
 end
 
-return { format = format }
+-- Always shows 3 decimal places (e.g. 1.257M, 4.000K) so small per-second changes in a
+-- big total are visible. Used by the HUD chip counter.
+local function formatPrecise(n: number): string
+	if n < 1000 then
+		return tostring(math.floor(n))
+	end
+	for i = #suffixes, 1, -1 do
+		local threshold = 10 ^ (i * 3)
+		if n >= threshold then
+			return string.format("%.3f%s", n / threshold, suffixes[i])
+		end
+	end
+	return tostring(n)
+end
+
+return { format = format, formatPrecise = formatPrecise }

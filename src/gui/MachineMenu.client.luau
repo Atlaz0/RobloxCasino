@@ -121,7 +121,7 @@ local pickupBtn = Instance.new("TextButton")
 pickupBtn.Name = "PickupButton"
 pickupBtn.Size = UDim2.new(1, -24, 0, 46)
 pickupBtn.Position = UDim2.new(0, 12, 0, 92)
-pickupBtn.BackgroundColor3 = UIStyle.NEON_BLUE
+pickupBtn.BackgroundColor3 = UIStyle.BTN_BLUE
 pickupBtn.BorderSizePixel = 0
 pickupBtn.Text = "Pick Up"
 pickupBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -134,18 +134,18 @@ UIStyle.maxText(pickupBtn, 18)
 do
 	local g = Instance.new("UIGradient")
 	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, UIStyle.NEON_BLUE),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(132, 154, 162)),
+		ColorSequenceKeypoint.new(0, UIStyle.BTN_BLUE),
+		ColorSequenceKeypoint.new(1, UIStyle.BTN_BLUE_LT),
 	})
 	g.Rotation = 90
 	g.Parent = pickupBtn
 	local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 10); pad.PaddingBottom = UDim.new(0, 10); pad.Parent = pickupBtn
 end
 pickupBtn.MouseEnter:Connect(function()
-	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(140, 162, 170)}):Play()
+	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.BTN_BLUE_LT}):Play()
 end)
 pickupBtn.MouseLeave:Connect(function()
-	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.NEON_BLUE}):Play()
+	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.BTN_BLUE}):Play()
 end)
 
 -- Sell button
@@ -153,7 +153,7 @@ local sellBtn = Instance.new("TextButton")
 sellBtn.Name = "SellButton"
 sellBtn.Size = UDim2.new(1, -24, 0, 46)
 sellBtn.Position = UDim2.new(0, 12, 0, 146)
-sellBtn.BackgroundColor3 = UIStyle.NEON_RED
+sellBtn.BackgroundColor3 = UIStyle.BTN_RED
 sellBtn.BorderSizePixel = 0
 sellBtn.Text = "Sell"
 sellBtn.TextColor3 = UIStyle.TEXT
@@ -166,8 +166,8 @@ UIStyle.maxText(sellBtn, 18)
 do
 	local g = Instance.new("UIGradient")
 	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, UIStyle.NEON_RED),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(206, 120, 108)),
+		ColorSequenceKeypoint.new(0, UIStyle.BTN_RED),
+		ColorSequenceKeypoint.new(1, UIStyle.BTN_RED_LT),
 	})
 	g.Rotation = 90
 	g.Parent = sellBtn
@@ -181,10 +181,10 @@ sellChip.Position = UDim2.new(1, -64, 0.5, 0)
 sellChip.ZIndex = sellBtn.ZIndex + 1
 sellChip.Parent = sellBtn
 sellBtn.MouseEnter:Connect(function()
-	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(206, 120, 108)}):Play()
+	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.BTN_RED_LT}):Play()
 end)
 sellBtn.MouseLeave:Connect(function()
-	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.NEON_RED}):Play()
+	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.BTN_RED}):Play()
 end)
 
 local function closeMenu()

@@ -214,7 +214,6 @@ for i, def in ipairs(sortedMachines) do
 	card.LayoutOrder = def.phase * 1000 + i
 	card.Parent = scroll
 	corner(card, 12)
-	gradient(card, UIStyle.CARD_BG, UIStyle.PANEL_BOTTOM, 135)
 
 	local cardAccentBar = Instance.new("Frame")
 	cardAccentBar.Size = UDim2.new(0, 5, 1, 0)
@@ -251,13 +250,13 @@ for i, def in ipairs(sortedMachines) do
 	local buyBtn = Instance.new("TextButton")
 	buyBtn.Size = UDim2.new(0, 104, 0, 44)
 	buyBtn.Position = UDim2.new(1, -114, 0.5, -22)
-	buyBtn.BackgroundColor3 = UIStyle.GOLD_DEEP
+	buyBtn.BackgroundColor3 = UIStyle.BTN_GOLD_DK
 	buyBtn.BorderSizePixel = 0
 	buyBtn.Text = ""
 	buyBtn.AutoButtonColor = false
 	buyBtn.Parent = card
 	corner(buyBtn, 10)
-	gradient(buyBtn, UIStyle.GOLD_DEEP, UIStyle.GOLD, 90)
+	gradient(buyBtn, UIStyle.BTN_GOLD_DK, UIStyle.BTN_GOLD, 90)
 
 	-- Chip on the left, price filling the rest — laid out so they never overlap.
 	local chip = UIStyle.chipIcon(20)
@@ -282,12 +281,12 @@ for i, def in ipairs(sortedMachines) do
 
 	buyBtn.MouseEnter:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundColor3 = UIStyle.GOLD_LIGHT,
+			BackgroundColor3 = UIStyle.BTN_GOLD_LT,
 		}):Play()
 	end)
 	buyBtn.MouseLeave:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundColor3 = UIStyle.GOLD_DEEP,
+			BackgroundColor3 = UIStyle.BTN_GOLD_DK,
 		}):Play()
 	end)
 
