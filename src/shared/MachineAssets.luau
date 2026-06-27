@@ -11,6 +11,25 @@ local function normalize(s: string): string
 	return (string.gsub(string.lower(s), "%W", ""))
 end
 
+-- Machine surfaces must be plain Parts/MeshParts — a UnionOperation (or any CSG result)
+-- frequently renders INVISIBLE when the server clones the model at runtime, even though the
+-- part is present and anchored. Warn once per model so a bad export is caught immediately
+-- instead of showing up as a vanished table top in game. See CLAUDE.md "Model gotchas".
+local warnedUnions: { [string]: boolean } = {}
+local function warnIfUnions(model: Model)
+	if warnedUnions[model.Name] then return end
+	for _, d in model:GetDescendants() do
+		if d:IsA("PartOperation") then
+			warnedUnions[model.Name] = true
+			warn(string.format(
+				"[MachineAssets] Machine model '%s' contains a %s (CSG/Union). Unions often render "
+					.. "invisible when cloned at runtime — Separate it into plain Parts before saving the .rbxm.",
+				model.Name, d.ClassName))
+			return
+		end
+	end
+end
+
 -- Finds the art template for a machine def's `modelName` (case/space-insensitive).
 function MachineAssets.find(modelName: string?): Model?
 	if not modelName then return nil end
@@ -18,11 +37,15 @@ function MachineAssets.find(modelName: string?): Model?
 	if not folder then return nil end
 
 	local exact = folder:FindFirstChild(modelName)
-	if exact and exact:IsA("Model") then return exact end
+	if exact and exact:IsA("Model") then
+		warnIfUnions(exact)
+		return exact
+	end
 
 	local want = normalize(modelName)
 	for _, child in folder:GetChildren() do
 		if child:IsA("Model") and normalize(child.Name) == want then
+			warnIfUnions(child)
 			return child
 		end
 	end

@@ -1,7 +1,8 @@
 -- Defines every placeable casino game/machine.
 -- incomePerSecond is the BASE rate before upgrades/multipliers.
--- `modelName` is matched (case/space-insensitive) against a model in ServerStorage.Assets
--- (synced from assets/models/*.rbxm); see MachineModel.luau.
+-- `modelName` is matched (case/space-insensitive) against a model in ReplicatedStorage.Machines
+-- (synced from assets/machines/*.rbxm) — the filename IS the modelName. See MachineModel.luau.
+-- NOTE: world decoration models live separately in ServerStorage.Assets (assets/models/).
 
 export type MachineDefinition = {
 	id: string,
@@ -9,7 +10,7 @@ export type MachineDefinition = {
 	description: string,
 	cost: number,          -- chips to place
 	incomePerSecond: number,
-	modelName: string,     -- ServerStorage.Assets model name
+	modelName: string,     -- ReplicatedStorage.Machines model (= assets/machines/<name>.rbxm)
 	phase: number,         -- 1/2/3 — which progression phase unlocks it
 	maxLevel: number,
 	upgradeCostMultiplier: number,  -- each level costs cost * multiplier^level
