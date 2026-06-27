@@ -112,15 +112,8 @@ function MachineAssets.scale(model: Model, factor: number)
 	end
 end
 
--- Positions `model` so its bottom rests on `surfaceY` at (x, z).
--- Normalises the model to Y-up first so .rbxm files exported with a tilted pivot
--- are corrected automatically (PivotTo with identity rotation untilts all descendants).
+-- Positions `model` so its bottom rests on `surfaceY` at (x, z), preserving orientation.
 function MachineAssets.ground(model: Model, x: number, z: number, surfaceY: number)
-	-- Step 1: strip any X/Z tilt by pivoting to the same position with identity rotation.
-	local pivotPos = model:GetPivot().Position
-	model:PivotTo(CFrame.new(pivotPos))
-
-	-- Step 2: now the model is Y-up; compute the correct grounding offset.
 	local center = model:GetBoundingBox().Position
 	local bottom = MachineAssets.worldBottom(model)
 	local shift = Vector3.new(x - center.X, surfaceY - bottom, z - center.Z)

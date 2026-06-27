@@ -200,7 +200,7 @@ local function buildLampPost(x: number, z: number, parent: Instance)
 	local light = Instance.new("PointLight")
 	light.Color = LAMP_BULB_COLOR
 	light.Range = 20
-	light.Brightness = 0.8
+	light.Brightness = 1.2
 	light.Parent = bulb
 end
 
