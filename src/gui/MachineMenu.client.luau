@@ -10,6 +10,7 @@ local Remotes      = require(Shared.net.Remotes)
 local MachineData  = require(Shared.constants.MachineData)
 local GameConfig   = require(Shared.constants.GameConfig)
 local FormatNumber = require(Shared.utils.FormatNumber)
+local UIStyle      = require(Shared.utils.UIStyle)
 
 local player    = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -138,7 +139,7 @@ pickupBtn.Size = UDim2.new(1, -24, 0, 46)
 pickupBtn.Position = UDim2.new(0, 12, 0, 92)
 pickupBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 200)
 pickupBtn.BorderSizePixel = 0
-pickupBtn.Text = "📦  Pick Up"
+pickupBtn.Text = "Pick Up"
 pickupBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 pickupBtn.Font = Enum.Font.GothamBold
 pickupBtn.TextScaled = true
@@ -169,7 +170,7 @@ sellBtn.Size = UDim2.new(1, -24, 0, 46)
 sellBtn.Position = UDim2.new(0, 12, 0, 146)
 sellBtn.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
 sellBtn.BorderSizePixel = 0
-sellBtn.Text = "💰  Sell"
+sellBtn.Text = "Sell"
 sellBtn.TextColor3 = GOLD_LIGHT
 sellBtn.Font = Enum.Font.GothamBold
 sellBtn.TextScaled = true
@@ -186,6 +187,13 @@ do
 	g.Parent = sellBtn
 	local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 10); pad.PaddingBottom = UDim.new(0, 10); pad.Parent = sellBtn
 end
+
+local sellChip = UIStyle.chipIcon(16)
+sellChip.Name = "SellChip"
+sellChip.AnchorPoint = Vector2.new(1, 0.5)
+sellChip.Position = UDim2.new(1, -64, 0.5, 0)
+sellChip.ZIndex = sellBtn.ZIndex + 1
+sellChip.Parent = sellBtn
 sellBtn.MouseEnter:Connect(function()
 	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(210, 50, 50)}):Play()
 end)
@@ -210,7 +218,7 @@ local function openMenu(model: Instance)
 
 	currentUid = uid
 	title.Text = def.displayName
-	sellBtn.Text = "💰  Sell   🪙 " .. FormatNumber.format(GameConfig.machineSellValue(def))
+	sellBtn.Text = "Sell   " .. FormatNumber.format(GameConfig.machineSellValue(def))
 	info.Text = "+" .. FormatNumber.format(def.incomePerSecond) .. " chips/sec"
 	panelScale.Scale = 0.1
 	panel.Visible = true

@@ -7,29 +7,15 @@ ReplicatedStorage:WaitForChild("Remotes", 15)
 local Shared       = ReplicatedStorage:WaitForChild("Shared")
 local Remotes      = require(Shared.net.Remotes)
 local FormatNumber = require(Shared.utils.FormatNumber)
+local UIStyle      = require(Shared.utils.UIStyle)
 
-local BG_DARK     = Color3.fromRGB(12, 8, 20)
-local BG_PANEL    = Color3.fromRGB(20, 13, 35)
-local GOLD        = Color3.fromRGB(255, 200, 55)
-local GOLD_LIGHT  = Color3.fromRGB(255, 235, 130)
-local NEON_GREEN  = Color3.fromRGB(80, 255, 140)
+local BG_DARK     = UIStyle.BG_DARK
+local GOLD        = UIStyle.GOLD
+local GOLD_LIGHT  = UIStyle.GOLD_LIGHT
+local NEON_GREEN  = UIStyle.NEON_GREEN
 local DIVIDER_COL = Color3.fromRGB(60, 40, 90)
 
 local prevChips: number = 0
-
-local function makeCorner(parent: Instance, radius: number)
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, radius)
-	c.Parent = parent
-end
-
-local function makeStroke(parent: Instance, color: Color3, thickness: number): UIStroke
-	local s = Instance.new("UIStroke")
-	s.Color = color
-	s.Thickness = thickness
-	s.Parent = parent
-	return s
-end
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "HUD"
@@ -45,17 +31,11 @@ topBar.BackgroundColor3 = BG_DARK
 topBar.BorderSizePixel = 0
 topBar.ClipsDescendants = true
 topBar.Parent = screenGui
-makeCorner(topBar, 18)
+UIStyle.corner(topBar, 18)
 
-local barGradient = Instance.new("UIGradient")
-barGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, BG_DARK),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(28, 16, 48)),
-})
-barGradient.Rotation = 135
-barGradient.Parent = topBar
+UIStyle.gradient(topBar, BG_DARK, Color3.fromRGB(28, 16, 48), 135)
 
-local barStroke = makeStroke(topBar, GOLD, 2)
+local barStroke = UIStyle.stroke(topBar, GOLD, 2)
 
 local shimmer = Instance.new("Frame")
 shimmer.Name = "Shimmer"
@@ -88,21 +68,16 @@ local function loopShimmer()
 end
 task.spawn(loopShimmer)
 
-local chipIcon = Instance.new("TextLabel")
-chipIcon.Name = "ChipIcon"
-chipIcon.Size = UDim2.new(0, 44, 1, 0)
-chipIcon.Position = UDim2.new(0, 14, 0, 0)
-chipIcon.BackgroundTransparency = 1
-chipIcon.Text = "🪙"
-chipIcon.TextScaled = true
-chipIcon.Font = Enum.Font.GothamBold
+local chipIcon = UIStyle.chipIcon(28)
+chipIcon.AnchorPoint = Vector2.new(0, 0.5)
+chipIcon.Position = UDim2.new(0, 14, 0.5, 0)
 chipIcon.ZIndex = 3
 chipIcon.Parent = topBar
 
 local chipsLabelContainer = Instance.new("Frame")
 chipsLabelContainer.Name = "ChipsContainer"
 chipsLabelContainer.Size = UDim2.new(0, 220, 1, 0)
-chipsLabelContainer.Position = UDim2.new(0, 64, 0, 0)
+chipsLabelContainer.Position = UDim2.new(0, 52, 0, 0)
 chipsLabelContainer.BackgroundTransparency = 1
 chipsLabelContainer.ZIndex = 3
 chipsLabelContainer.Parent = topBar
@@ -116,7 +91,7 @@ chipsLabel.Name = "ChipsLabel"
 chipsLabel.Size = UDim2.new(1, 0, 1, 0)
 chipsLabel.Position = UDim2.new(0, 0, 0, 0)
 chipsLabel.BackgroundTransparency = 1
-chipsLabel.Text = "0 chips"
+chipsLabel.Text = "0"
 chipsLabel.TextColor3 = GOLD
 chipsLabel.TextSize = 26
 chipsLabel.Font = Enum.Font.GothamBlack
@@ -241,7 +216,7 @@ end
 
 Remotes.ChipsUpdated.OnClientEvent:Connect(function(total: number)
 	local gained = total - prevChips
-	chipsLabel.Text = FormatNumber.format(total) .. " chips"
+	chipsLabel.Text = FormatNumber.format(total)
 	bounceChips()
 	if gained > 0 then
 		showPopup(gained)

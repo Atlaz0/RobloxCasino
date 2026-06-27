@@ -7,6 +7,7 @@ ReplicatedStorage:WaitForChild("Remotes", 15)
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local MachineData  = require(Shared.constants.MachineData)
 local FormatNumber = require(Shared.utils.FormatNumber)
+local UIStyle      = require(Shared.utils.UIStyle)
 
 local Client = Players.LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("Client")
 local PlacementController = require(Client.controllers.PlacementController)
@@ -68,33 +69,13 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Toggle button (bottom-right)
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "ShopToggle"
-toggleBtn.Size = UDim2.new(0, 140, 0, 52)
-toggleBtn.Position = UDim2.new(1, -156, 1, -126)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 28, 80)
-toggleBtn.Text = "🏪  Shop"
-toggleBtn.TextColor3 = GOLD
-toggleBtn.TextScaled = true
-toggleBtn.Font = Enum.Font.GothamBlack
-toggleBtn.BorderSizePixel = 0
+local toggleBtn = UIStyle.toggleButton({
+	name = "ShopToggle",
+	text = "Shop",
+	accent = UIStyle.GOLD,
+	position = UDim2.new(1, -170, 1, -72),
+})
 toggleBtn.Parent = screenGui
-corner(toggleBtn, 14)
-gradient(toggleBtn, Color3.fromRGB(50, 28, 80), Color3.fromRGB(30, 15, 55), 135)
-local toggleStroke = stroke(toggleBtn, GOLD, 2)
-
-toggleBtn.MouseEnter:Connect(function()
-	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Color = GOLD_LIGHT,
-		Thickness = 2.5,
-	}):Play()
-end)
-toggleBtn.MouseLeave:Connect(function()
-	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Color = GOLD,
-		Thickness = 2,
-	}):Play()
-end)
 
 -- Panel
 local panel = Instance.new("Frame")
@@ -277,13 +258,22 @@ for i, def in ipairs(sortedMachines) do
 	buyBtn.Position = UDim2.new(1, -110, 0.5, -22)
 	buyBtn.BackgroundColor3 = Color3.fromRGB(220, 160, 0)
 	buyBtn.BorderSizePixel = 0
-	buyBtn.Text = "🪙 " .. FormatNumber.format(def.cost)
+	buyBtn.Text = FormatNumber.format(def.cost)
 	buyBtn.TextColor3 = Color3.fromRGB(20, 10, 0)
 	buyBtn.Font = Enum.Font.GothamBlack
 	buyBtn.TextScaled = true
 	buyBtn.Parent = card
 	corner(buyBtn, 10)
 	gradient(buyBtn, Color3.fromRGB(220, 160, 0), Color3.fromRGB(255, 200, 30), 90)
+
+	local buyBtnPadding = Instance.new("UIPadding")
+	buyBtnPadding.PaddingLeft = UDim.new(0, 26)
+	buyBtnPadding.Parent = buyBtn
+
+	local chip = UIStyle.chipIcon(18)
+	chip.Position = UDim2.new(0, 8, 0.5, -9)
+	chip.ZIndex = buyBtn.ZIndex + 1
+	chip.Parent = buyBtn
 
 	buyBtn.MouseEnter:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {

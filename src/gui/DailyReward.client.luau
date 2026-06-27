@@ -7,6 +7,7 @@ ReplicatedStorage:WaitForChild("Remotes", 15)
 local Shared       = ReplicatedStorage:WaitForChild("Shared")
 local Remotes      = require(Shared.net.Remotes)
 local FormatNumber = require(Shared.utils.FormatNumber)
+local UIStyle      = require(Shared.utils.UIStyle)
 
 local player    = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -34,43 +35,13 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
 -- Toggle button
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "ToggleButton"
-toggleBtn.Size = UDim2.new(0, 140, 0, 52)
-toggleBtn.Position = UDim2.new(0, 16, 1, -126)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 16, 50)
-toggleBtn.Text = "🎁  Daily"
-toggleBtn.TextColor3 = GOLD
-toggleBtn.TextScaled = true
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.BorderSizePixel = 0
-toggleBtn.AutoButtonColor = false
+local toggleBtn = UIStyle.toggleButton({
+	name = "DailyToggle",
+	text = "Daily",
+	accent = UIStyle.GOLD,
+	position = UDim2.new(0, 16, 1, -72),
+})
 toggleBtn.Parent = screenGui
-do
-	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 14); c.Parent = toggleBtn
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 20, 75)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 10, 40)),
-	})
-	g.Rotation = 90
-	g.Parent = toggleBtn
-end
-local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = GOLD
-toggleStroke.Thickness = 2
-toggleStroke.Parent = toggleBtn
-
-toggleBtn.MouseEnter:Connect(function()
-	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Color = GOLD_LIGHT, Thickness = 2.5
-	}):Play()
-end)
-toggleBtn.MouseLeave:Connect(function()
-	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Color = GOLD, Thickness = 2
-	}):Play()
-end)
 
 -- Ready badge
 local readyBadge = Instance.new("TextLabel")
@@ -182,16 +153,37 @@ for i = 1, 7 do
 	table.insert(streakDots, {frame = dot, stroke = ds, label = dl})
 end
 
--- Reward label
+-- Reward row (drawn chip icon + text, no emoji)
+local rewardHolder = Instance.new("Frame")
+rewardHolder.Name = "RewardHolder"
+rewardHolder.Size = UDim2.new(1, -24, 0, 60)
+rewardHolder.Position = UDim2.new(0, 12, 0, 110)
+rewardHolder.BackgroundTransparency = 1
+rewardHolder.Parent = panel
+do
+	local rh = Instance.new("UIListLayout")
+	rh.FillDirection = Enum.FillDirection.Horizontal
+	rh.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	rh.VerticalAlignment = Enum.VerticalAlignment.Center
+	rh.Padding = UDim.new(0, 8)
+	rh.Parent = rewardHolder
+end
+
+local rewardChip = UIStyle.chipIcon(30)
+rewardChip.LayoutOrder = 1
+rewardChip.Parent = rewardHolder
+
 local rewardLabel = Instance.new("TextLabel")
-rewardLabel.Size = UDim2.new(1, -24, 0, 60)
-rewardLabel.Position = UDim2.new(0, 12, 0, 110)
+rewardLabel.Size = UDim2.new(0, 240, 1, 0)
+rewardLabel.AutomaticSize = Enum.AutomaticSize.X
+rewardLabel.LayoutOrder = 2
 rewardLabel.BackgroundTransparency = 1
-rewardLabel.Text = "🪙 0 chips"
+rewardLabel.Text = "0 chips"
 rewardLabel.TextColor3 = GOLD
-rewardLabel.TextScaled = true
+rewardLabel.TextSize = 34
 rewardLabel.Font = Enum.Font.GothamBlack
-rewardLabel.Parent = panel
+rewardLabel.TextXAlignment = Enum.TextXAlignment.Left
+rewardLabel.Parent = rewardHolder
 
 -- Claim button
 local claimBtn = Instance.new("TextButton")
@@ -268,7 +260,7 @@ local function updateStreakDots()
 end
 
 local function refreshUI()
-	rewardLabel.Text = "🪙 " .. FormatNumber.format(status.nextReward) .. " chips"
+	rewardLabel.Text = FormatNumber.format(status.nextReward) .. " chips"
 	readyBadge.Visible = status.canClaim
 	updateStreakDots()
 
@@ -322,7 +314,7 @@ claimBtn.MouseButton1Click:Connect(function()
 	if ok and result and result.status then
 		status = result.status
 		if result.success then
-			rewardLabel.Text = "Claimed! 🪙 " .. FormatNumber.format(result.reward)
+			rewardLabel.Text = "Claimed! " .. FormatNumber.format(result.reward)
 		end
 	end
 	refreshUI()

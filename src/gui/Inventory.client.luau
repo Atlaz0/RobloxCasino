@@ -8,6 +8,7 @@ local Remotes      = require(Shared.net.Remotes)
 local MachineData  = require(Shared.constants.MachineData)
 local GameConfig   = require(Shared.constants.GameConfig)
 local FormatNumber = require(Shared.utils.FormatNumber)
+local UIStyle      = require(Shared.utils.UIStyle)
 
 local Client = Players.LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("Client")
 local PlacementController = require(Client.controllers.PlacementController)
@@ -34,43 +35,13 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
 -- Toggle button
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "InventoryToggle"
-toggleBtn.Size = UDim2.new(0, 140, 0, 52)
-toggleBtn.Position = UDim2.new(0, 16, 1, -182)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 16, 50)
-toggleBtn.Text = "🎒  Stash"
-toggleBtn.TextColor3 = GOLD
-toggleBtn.TextScaled = true
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.BorderSizePixel = 0
-toggleBtn.AutoButtonColor = false
+local toggleBtn = UIStyle.toggleButton({
+	name = "InventoryToggle",
+	text = "Stash",
+	accent = UIStyle.ACCENT,
+	position = UDim2.new(0, 16, 1, -130),
+})
 toggleBtn.Parent = screenGui
-do
-	corner(toggleBtn, 14)
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 20, 75)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 10, 40)),
-	})
-	g.Rotation = 90
-	g.Parent = toggleBtn
-end
-local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = ACCENT
-toggleStroke.Thickness = 2
-toggleStroke.Parent = toggleBtn
-
-toggleBtn.MouseEnter:Connect(function()
-	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Color = Color3.fromRGB(200, 140, 255), Thickness = 2.5
-	}):Play()
-end)
-toggleBtn.MouseLeave:Connect(function()
-	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Color = ACCENT, Thickness = 2
-	}):Play()
-end)
 
 -- Panel
 local PANEL_CLOSED_POS = UDim2.new(0, -340, 1, -606)
@@ -293,7 +264,7 @@ local function rebuild()
 			sellBtn.Position = UDim2.new(1, -80, 0.5, -18)
 			sellBtn.BackgroundColor3 = Color3.fromRGB(130, 95, 0)
 			sellBtn.BorderSizePixel = 0
-			sellBtn.Text = "🪙 " .. FormatNumber.format(GameConfig.machineSellValue(def))
+			sellBtn.Text = FormatNumber.format(GameConfig.machineSellValue(def))
 			sellBtn.TextColor3 = GOLD_LIGHT
 			sellBtn.Font = Enum.Font.GothamBold
 			sellBtn.TextScaled = true
@@ -308,7 +279,14 @@ local function rebuild()
 				})
 				g.Rotation = 90
 				g.Parent = sellBtn
+				local sp = Instance.new("UIPadding")
+				sp.PaddingLeft = UDim.new(0, 24)
+				sp.Parent = sellBtn
 			end
+			local sellChip = UIStyle.chipIcon(16)
+			sellChip.Position = UDim2.new(0, 6, 0.5, -8)
+			sellChip.ZIndex = sellBtn.ZIndex + 1
+			sellChip.Parent = sellBtn
 			sellBtn.MouseEnter:Connect(function()
 				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(180, 130, 0)}):Play()
 			end)
