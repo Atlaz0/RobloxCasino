@@ -22,6 +22,8 @@ local PHASE_COLORS = {
 	[3] = Color3.fromRGB(60, 220, 220),  -- cyan
 }
 
+local MACHINE_SCALE = 1.2
+
 local BASE_HEIGHT = 1
 local BODY_HEIGHT = 7
 local SCREEN_HEIGHT = 2
@@ -70,10 +72,9 @@ function MachineModel.build(def, baseCF: CFrame): Model
 	local template = MachineAssets.find(def.modelName)
 	if template then
 		local clone = template:Clone()
-		MachineAssets.stripScripts(clone) -- neutralize any embedded model scripts
+		MachineAssets.stripScripts(clone)
 		anchorAll(clone)
-		-- Ground the model's true (world-space) bottom on the plot surface at baseCF's XZ.
-		-- (baseCF.Y is the base-center = surface + 0.5.)
+		clone:ScaleTo(MACHINE_SCALE) -- scale before grounding so worldBottom() uses scaled size
 		MachineAssets.ground(clone, baseCF.Position.X, baseCF.Position.Z, baseCF.Y - 0.5)
 		if not clone.PrimaryPart then
 			clone.PrimaryPart = clone:FindFirstChildWhichIsA("BasePart")

@@ -5,6 +5,7 @@ local DataManager  = require(script.Parent.Parent.data.DataManager)
 local MachineData  = require(Shared.constants.MachineData)
 local GameConfig   = require(Shared.constants.GameConfig)
 local Remotes      = require(Shared.net.Remotes)
+local PlotService  = require(script.Parent.Parent.systems.PlotService)
 
 local function getActiveBoostMultiplier(profile): number
 	local now = os.time()
@@ -64,9 +65,12 @@ local function init()
 			for _, player in Players:GetPlayers() do
 				local profile = DataManager.get(player)
 				if profile then
-					local earned = calcIncomePerSecond(profile) * GameConfig.PASSIVE_INCOME_INTERVAL
-					awardChips(player, earned)
-					Remotes.IncomeRateUpdated:FireClient(player, calcIncomePerSecond(profile))
+					local hasClaimed = PlotService.getPlayerPlot(player) ~= nil
+					local rate = hasClaimed and calcIncomePerSecond(profile) or 0
+					if hasClaimed then
+						awardChips(player, rate * GameConfig.PASSIVE_INCOME_INTERVAL)
+					end
+					Remotes.IncomeRateUpdated:FireClient(player, rate)
 				end
 			end
 		end
