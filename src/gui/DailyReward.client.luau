@@ -1,5 +1,6 @@
 local Players           = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService      = game:GetService("TweenService")
 
 ReplicatedStorage:WaitForChild("Remotes", 15)
 
@@ -10,7 +11,12 @@ local FormatNumber = require(Shared.utils.FormatNumber)
 local player    = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Local copy of the latest server status; the countdown ticks down off this each second.
+local BG_DARK    = Color3.fromRGB(12, 8, 20)
+local BG_PANEL   = Color3.fromRGB(20, 13, 35)
+local GOLD       = Color3.fromRGB(255, 200, 55)
+local GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
+local NEON_GREEN = Color3.fromRGB(80, 255, 140)
+
 local status = { canClaim = false, secondsRemaining = 0, streak = 0, nextReward = 0 }
 
 local function formatCountdown(seconds: number): string
@@ -21,36 +27,56 @@ local function formatCountdown(seconds: number): string
 	return string.format("%02d:%02d:%02d", h, m, s)
 end
 
--- ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "DailyReward"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
--- Floating toggle button (bottom-left)
+-- Toggle button
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Name = "ToggleButton"
-toggleBtn.Size = UDim2.new(0, 130, 0, 48)
-toggleBtn.Position = UDim2.new(0, 16, 1, -120)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 24, 60)
-toggleBtn.Text = "🎁 Daily"
-toggleBtn.TextColor3 = Color3.fromRGB(255, 230, 120)
+toggleBtn.Size = UDim2.new(0, 140, 0, 52)
+toggleBtn.Position = UDim2.new(0, 16, 1, -126)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 16, 50)
+toggleBtn.Text = "🎁  Daily"
+toggleBtn.TextColor3 = GOLD
 toggleBtn.TextScaled = true
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.BorderSizePixel = 0
+toggleBtn.AutoButtonColor = false
 toggleBtn.Parent = screenGui
 do
-	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 12); c.Parent = toggleBtn
-	local s = Instance.new("UIStroke"); s.Color = Color3.fromRGB(255, 200, 90); s.Thickness = 2; s.Parent = toggleBtn
-	local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 8); pad.PaddingBottom = UDim.new(0, 8); pad.Parent = toggleBtn
+	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 14); c.Parent = toggleBtn
+	local g = Instance.new("UIGradient")
+	g.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 20, 75)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 10, 40)),
+	})
+	g.Rotation = 90
+	g.Parent = toggleBtn
 end
+local toggleStroke = Instance.new("UIStroke")
+toggleStroke.Color = GOLD
+toggleStroke.Thickness = 2
+toggleStroke.Parent = toggleBtn
 
--- A small badge on the toggle button when a reward is ready.
+toggleBtn.MouseEnter:Connect(function()
+	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Color = GOLD_LIGHT, Thickness = 2.5
+	}):Play()
+end)
+toggleBtn.MouseLeave:Connect(function()
+	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Color = GOLD, Thickness = 2
+	}):Play()
+end)
+
+-- Ready badge
 local readyBadge = Instance.new("TextLabel")
 readyBadge.Name = "ReadyBadge"
 readyBadge.Size = UDim2.new(0, 20, 0, 20)
-readyBadge.Position = UDim2.new(1, -8, 0, -8)
+readyBadge.Position = UDim2.new(1, -6, 0, -6)
 readyBadge.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
 readyBadge.Text = "!"
 readyBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -63,102 +89,236 @@ do
 end
 
 -- Panel
+local PANEL_CLOSED_POS = UDim2.new(0, 16, 1, 20)
+local PANEL_OPEN_POS   = UDim2.new(0, 16, 1, -370)
+
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 300, 0, 220)
-panel.Position = UDim2.new(0, 16, 1, -350)
-panel.BackgroundColor3 = Color3.fromRGB(18, 12, 28)
+panel.Size = UDim2.new(0, 320, 0, 340)
+panel.Position = PANEL_CLOSED_POS
+panel.BackgroundColor3 = BG_DARK
 panel.BorderSizePixel = 0
 panel.Visible = false
 panel.Parent = screenGui
 do
-	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 16); c.Parent = panel
-	local s = Instance.new("UIStroke"); s.Color = Color3.fromRGB(180, 130, 255); s.Thickness = 1.5; s.Parent = panel
+	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 18); c.Parent = panel
+	local g = Instance.new("UIGradient")
+	g.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, BG_DARK),
+		ColorSequenceKeypoint.new(1, BG_PANEL),
+	})
+	g.Rotation = 180
+	g.Parent = panel
+	local s = Instance.new("UIStroke"); s.Color = GOLD; s.Thickness = 1.5; s.Parent = panel
 end
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -24, 0, 36)
-title.Position = UDim2.new(0, 12, 0, 10)
-title.BackgroundTransparency = 1
-title.Text = "Daily Reward"
-title.TextColor3 = Color3.fromRGB(255, 230, 120)
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = panel
+-- Header bar
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 50)
+header.Position = UDim2.new(0, 0, 0, 0)
+header.BackgroundColor3 = Color3.fromRGB(200, 120, 15)
+header.BorderSizePixel = 0
+header.ZIndex = 2
+header.Parent = panel
+do
+	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 18); c.Parent = header
+	local cover = Instance.new("Frame")
+	cover.Size = UDim2.new(1, 0, 0, 18)
+	cover.Position = UDim2.new(0, 0, 1, -18)
+	cover.BackgroundColor3 = Color3.fromRGB(200, 120, 15)
+	cover.BorderSizePixel = 0
+	cover.ZIndex = 2
+	cover.Parent = header
+	local g = Instance.new("UIGradient")
+	g.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 150, 20)),
+		ColorSequenceKeypoint.new(1, GOLD),
+	})
+	g.Rotation = 0
+	g.Parent = header
+end
+local headerTitle = Instance.new("TextLabel")
+headerTitle.Size = UDim2.new(1, 0, 1, 0)
+headerTitle.BackgroundTransparency = 1
+headerTitle.Text = "DAILY REWARD"
+headerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+headerTitle.TextScaled = true
+headerTitle.Font = Enum.Font.GothamBlack
+headerTitle.ZIndex = 3
+headerTitle.Parent = header
 
-local streakLabel = Instance.new("TextLabel")
-streakLabel.Size = UDim2.new(1, -24, 0, 26)
-streakLabel.Position = UDim2.new(0, 12, 0, 52)
-streakLabel.BackgroundTransparency = 1
-streakLabel.Text = "Streak: 0 days"
-streakLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
-streakLabel.TextScaled = true
-streakLabel.Font = Enum.Font.Gotham
-streakLabel.TextXAlignment = Enum.TextXAlignment.Left
-streakLabel.Parent = panel
+-- Streak dots row
+local dotsRow = Instance.new("Frame")
+dotsRow.Name = "StreakDots"
+dotsRow.Size = UDim2.new(1, -24, 0, 36)
+dotsRow.Position = UDim2.new(0, 12, 0, 60)
+dotsRow.BackgroundTransparency = 1
+dotsRow.Parent = panel
+local dotsLayout = Instance.new("UIListLayout")
+dotsLayout.FillDirection = Enum.FillDirection.Horizontal
+dotsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+dotsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+dotsLayout.Padding = UDim.new(0, 8)
+dotsLayout.Parent = dotsRow
 
+local streakDots = {}
+for i = 1, 7 do
+	local dot = Instance.new("Frame")
+	dot.Size = UDim2.new(0, 24, 0, 24)
+	dot.BackgroundColor3 = Color3.fromRGB(50, 40, 60)
+	dot.BorderSizePixel = 0
+	dot.Parent = dotsRow
+	local dc = Instance.new("UICorner"); dc.CornerRadius = UDim.new(1, 0); dc.Parent = dot
+	local ds = Instance.new("UIStroke"); ds.Color = Color3.fromRGB(80, 70, 90); ds.Thickness = 1.5; ds.Parent = dot
+	local dl = Instance.new("TextLabel")
+	dl.Size = UDim2.new(1, 0, 1, 0)
+	dl.BackgroundTransparency = 1
+	dl.Text = tostring(i)
+	dl.TextColor3 = Color3.fromRGB(120, 110, 130)
+	dl.TextScaled = true
+	dl.Font = Enum.Font.GothamBold
+	dl.Parent = dot
+	table.insert(streakDots, {frame = dot, stroke = ds, label = dl})
+end
+
+-- Reward label
 local rewardLabel = Instance.new("TextLabel")
-rewardLabel.Size = UDim2.new(1, -24, 0, 30)
-rewardLabel.Position = UDim2.new(0, 12, 0, 82)
+rewardLabel.Size = UDim2.new(1, -24, 0, 60)
+rewardLabel.Position = UDim2.new(0, 12, 0, 110)
 rewardLabel.BackgroundTransparency = 1
-rewardLabel.Text = "Reward: 🪙 0"
-rewardLabel.TextColor3 = Color3.fromRGB(120, 255, 150)
+rewardLabel.Text = "🪙 0 chips"
+rewardLabel.TextColor3 = GOLD
 rewardLabel.TextScaled = true
-rewardLabel.Font = Enum.Font.GothamBold
-rewardLabel.TextXAlignment = Enum.TextXAlignment.Left
+rewardLabel.Font = Enum.Font.GothamBlack
 rewardLabel.Parent = panel
 
+-- Claim button
 local claimBtn = Instance.new("TextButton")
 claimBtn.Name = "ClaimButton"
 claimBtn.Size = UDim2.new(1, -24, 0, 56)
 claimBtn.Position = UDim2.new(0, 12, 1, -68)
-claimBtn.BackgroundColor3 = Color3.fromRGB(40, 140, 70)
-claimBtn.Text = "Claim"
+claimBtn.BackgroundColor3 = Color3.fromRGB(0, 160, 60)
+claimBtn.Text = "✦  Claim Reward  ✦"
 claimBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 claimBtn.TextScaled = true
 claimBtn.Font = Enum.Font.GothamBold
 claimBtn.BorderSizePixel = 0
+claimBtn.AutoButtonColor = false
 claimBtn.Parent = panel
+local claimGradient = Instance.new("UIGradient")
+claimGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 60)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 220, 100)),
+})
+claimGradient.Rotation = 90
+claimGradient.Parent = claimBtn
 do
 	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 12); c.Parent = claimBtn
 	local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 10); pad.PaddingBottom = UDim.new(0, 10); pad.Parent = claimBtn
 end
 
+local claimStroke = Instance.new("UIStroke")
+claimStroke.Color = NEON_GREEN
+claimStroke.Thickness = 0
+claimStroke.Parent = claimBtn
+
+local pulseConn
+local function startClaimPulse()
+	if pulseConn then return end
+	claimStroke.Thickness = 2
+	pulseConn = task.spawn(function()
+		while true do
+			TweenService:Create(claimStroke, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 3}):Play()
+			task.wait(0.7)
+			TweenService:Create(claimStroke, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 1.5}):Play()
+			task.wait(0.7)
+		end
+	end)
+end
+local function stopClaimPulse()
+	if pulseConn then task.cancel(pulseConn); pulseConn = nil end
+	claimStroke.Thickness = 0
+end
+
+local function updateStreakDots()
+	for i, d in streakDots do
+		if i < status.streak then
+			d.frame.BackgroundColor3 = GOLD
+			d.stroke.Color = GOLD_LIGHT
+			d.stroke.Thickness = 2
+			d.label.TextColor3 = Color3.fromRGB(20, 10, 0)
+		elseif i == status.streak and not status.canClaim then
+			d.frame.BackgroundColor3 = GOLD
+			d.stroke.Color = GOLD_LIGHT
+			d.stroke.Thickness = 2
+			d.label.TextColor3 = Color3.fromRGB(20, 10, 0)
+		elseif i == (status.streak + 1) or (status.canClaim and i == status.streak + 1) then
+			d.frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+			d.stroke.Color = NEON_GREEN
+			d.stroke.Thickness = 2.5
+			d.label.TextColor3 = NEON_GREEN
+		else
+			d.frame.BackgroundColor3 = Color3.fromRGB(50, 40, 60)
+			d.stroke.Color = Color3.fromRGB(80, 70, 90)
+			d.stroke.Thickness = 1.5
+			d.label.TextColor3 = Color3.fromRGB(120, 110, 130)
+		end
+	end
+end
+
 local function refreshUI()
-	streakLabel.Text = "Streak: " .. status.streak .. " day" .. (status.streak == 1 and "" or "s")
-	rewardLabel.Text = "Reward: 🪙 " .. FormatNumber.format(status.nextReward)
+	rewardLabel.Text = "🪙 " .. FormatNumber.format(status.nextReward) .. " chips"
 	readyBadge.Visible = status.canClaim
+	updateStreakDots()
 
 	if status.canClaim then
-		claimBtn.Text = "Claim"
-		claimBtn.BackgroundColor3 = Color3.fromRGB(40, 140, 70)
+		claimBtn.Text = "✦  Claim Reward  ✦"
+		claimGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 60)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 220, 100)),
+		})
 		claimBtn.Active = true
-		claimBtn.AutoButtonColor = true
+		claimBtn.AutoButtonColor = false
+		startClaimPulse()
 	else
+		stopClaimPulse()
 		claimBtn.Text = "Next: " .. formatCountdown(status.secondsRemaining)
-		claimBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+		claimGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 50, 65)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 50, 65)),
+		})
 		claimBtn.Active = false
 		claimBtn.AutoButtonColor = false
 	end
 end
 
+local panelOpen = false
+
+local function openPanel()
+	panel.Position = PANEL_CLOSED_POS
+	panel.Visible = true
+	TweenService:Create(panel, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = PANEL_OPEN_POS}):Play()
+end
+local function closePanel()
+	TweenService:Create(panel, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = PANEL_CLOSED_POS}):Play()
+	task.delay(0.2, function() panel.Visible = false end)
+end
+
 toggleBtn.MouseButton1Click:Connect(function()
-	panel.Visible = not panel.Visible
+	panelOpen = not panelOpen
+	if panelOpen then openPanel() else closePanel() end
 end)
 
 claimBtn.MouseButton1Click:Connect(function()
-	if not status.canClaim then
-		return
-	end
+	if not status.canClaim then return end
 	claimBtn.Active = false
 	claimBtn.AutoButtonColor = false
 	claimBtn.Text = "Claiming..."
-
+	stopClaimPulse()
 	local ok, result = pcall(function()
 		return Remotes.RequestDailyReward:InvokeServer()
 	end)
-
 	if ok and result and result.status then
 		status = result.status
 		if result.success then
@@ -173,7 +333,6 @@ Remotes.DailyRewardStatus.OnClientEvent:Connect(function(newStatus)
 	refreshUI()
 end)
 
--- Local countdown tick so the timer feels live between server pushes.
 task.spawn(function()
 	while true do
 		task.wait(1)
@@ -187,8 +346,6 @@ task.spawn(function()
 	end
 end)
 
--- Pull current status on load (the server's join-time push may have fired before this
--- script connected its handler above).
 task.spawn(function()
 	local ok, pulled = pcall(function()
 		return Remotes.RequestDailyStatus:InvokeServer()

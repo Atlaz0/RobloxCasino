@@ -1,8 +1,6 @@
--- Inventory panel: machines you've picked up off your plot. Re-place them (free) or sell
--- them for chips. Mirrors the server's profile.inventory via the InventoryUpdated event.
-
 local Players           = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService      = game:GetService("TweenService")
 
 ReplicatedStorage:WaitForChild("Remotes", 15)
 local Shared       = ReplicatedStorage:WaitForChild("Shared")
@@ -17,15 +15,17 @@ local PlacementController = require(Client.controllers.PlacementController)
 local player    = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local PANEL_BG = Color3.fromRGB(18, 12, 28)
-local CARD_BG  = Color3.fromRGB(28, 20, 44)
-local ACCENT   = Color3.fromRGB(180, 130, 255)
-local GOLD     = Color3.fromRGB(255, 230, 120)
+local BG_DARK    = Color3.fromRGB(12, 8, 20)
+local BG_PANEL   = Color3.fromRGB(20, 13, 35)
+local GOLD       = Color3.fromRGB(255, 200, 55)
+local GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
+local ACCENT     = Color3.fromRGB(160, 90, 255)
+local CARD_BG    = Color3.fromRGB(26, 16, 42)
 
 local function corner(p, r) local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = p end
 local function stroke(p, col, t) local s = Instance.new("UIStroke"); s.Color = col; s.Thickness = t; s.Parent = p end
 
-local items = {} -- mirror of server inventory: { { id, level } }
+local items = {}
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "Inventory"
@@ -33,59 +33,153 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
--- Toggle button (bottom-left, above the Daily button).
+-- Toggle button
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Name = "InventoryToggle"
-toggleBtn.Size = UDim2.new(0, 130, 0, 48)
-toggleBtn.Position = UDim2.new(0, 16, 1, -176)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 24, 60)
-toggleBtn.Text = "🎒 Inventory"
+toggleBtn.Size = UDim2.new(0, 140, 0, 52)
+toggleBtn.Position = UDim2.new(0, 16, 1, -182)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 16, 50)
+toggleBtn.Text = "🎒  Stash"
 toggleBtn.TextColor3 = GOLD
 toggleBtn.TextScaled = true
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.BorderSizePixel = 0
+toggleBtn.AutoButtonColor = false
 toggleBtn.Parent = screenGui
-corner(toggleBtn, 12)
-stroke(toggleBtn, ACCENT, 2)
-do local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 8); pad.PaddingBottom = UDim.new(0, 8); pad.Parent = toggleBtn end
+do
+	corner(toggleBtn, 14)
+	local g = Instance.new("UIGradient")
+	g.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 20, 75)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 10, 40)),
+	})
+	g.Rotation = 90
+	g.Parent = toggleBtn
+end
+local toggleStroke = Instance.new("UIStroke")
+toggleStroke.Color = ACCENT
+toggleStroke.Thickness = 2
+toggleStroke.Parent = toggleBtn
+
+toggleBtn.MouseEnter:Connect(function()
+	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Color = Color3.fromRGB(200, 140, 255), Thickness = 2.5
+	}):Play()
+end)
+toggleBtn.MouseLeave:Connect(function()
+	TweenService:Create(toggleStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Color = ACCENT, Thickness = 2
+	}):Play()
+end)
+
+-- Panel
+local PANEL_CLOSED_POS = UDim2.new(0, -340, 1, -606)
+local PANEL_OPEN_POS   = UDim2.new(0, 16, 1, -606)
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
 panel.Size = UDim2.new(0, 320, 0, 420)
-panel.Position = UDim2.new(0, 16, 1, -606)
-panel.BackgroundColor3 = PANEL_BG
+panel.Position = PANEL_CLOSED_POS
+panel.BackgroundColor3 = BG_DARK
 panel.BorderSizePixel = 0
 panel.Visible = false
 panel.Parent = screenGui
-corner(panel, 16)
-stroke(panel, ACCENT, 1.5)
+do
+	corner(panel, 18)
+	stroke(panel, ACCENT, 1.5)
+	local g = Instance.new("UIGradient")
+	g.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, BG_DARK),
+		ColorSequenceKeypoint.new(1, BG_PANEL),
+	})
+	g.Rotation = 160
+	g.Parent = panel
+end
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -24, 0, 34)
-title.Position = UDim2.new(0, 12, 0, 10)
-title.BackgroundTransparency = 1
-title.Text = "Inventory"
-title.TextColor3 = GOLD
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = panel
+-- Header bar
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 48)
+header.Position = UDim2.new(0, 0, 0, 0)
+header.BackgroundColor3 = ACCENT
+header.BorderSizePixel = 0
+header.ZIndex = 2
+header.Parent = panel
+do
+	corner(header, 18)
+	local cover = Instance.new("Frame")
+	cover.Size = UDim2.new(1, 0, 0, 18)
+	cover.Position = UDim2.new(0, 0, 1, -18)
+	cover.BackgroundColor3 = ACCENT
+	cover.BorderSizePixel = 0
+	cover.ZIndex = 2
+	cover.Parent = header
+	local g = Instance.new("UIGradient")
+	g.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, ACCENT),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 10, 60)),
+	})
+	g.Rotation = 0
+	g.Parent = header
+end
+
+local headerTitle = Instance.new("TextLabel")
+headerTitle.Size = UDim2.new(0.6, 0, 1, 0)
+headerTitle.Position = UDim2.new(0, 14, 0, 0)
+headerTitle.BackgroundTransparency = 1
+headerTitle.Text = "STASH"
+headerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+headerTitle.TextScaled = true
+headerTitle.Font = Enum.Font.GothamBlack
+headerTitle.TextXAlignment = Enum.TextXAlignment.Left
+headerTitle.ZIndex = 3
+headerTitle.Parent = header
+
+local itemCountBadge = Instance.new("TextLabel")
+itemCountBadge.Name = "ItemCount"
+itemCountBadge.Size = UDim2.new(0, 40, 0, 24)
+itemCountBadge.Position = UDim2.new(1, -50, 0.5, -12)
+itemCountBadge.BackgroundColor3 = Color3.fromRGB(40, 20, 70)
+itemCountBadge.Text = "0"
+itemCountBadge.TextColor3 = GOLD
+itemCountBadge.TextScaled = true
+itemCountBadge.Font = Enum.Font.GothamBold
+itemCountBadge.ZIndex = 4
+itemCountBadge.Parent = header
+corner(itemCountBadge, 12)
+stroke(itemCountBadge, GOLD, 1)
+
+-- Empty state
+local emptyHolder = Instance.new("Frame")
+emptyHolder.Size = UDim2.new(1, 0, 1, -56)
+emptyHolder.Position = UDim2.new(0, 0, 0, 56)
+emptyHolder.BackgroundTransparency = 1
+emptyHolder.Visible = false
+emptyHolder.Parent = panel
+
+local emptyIcon = Instance.new("TextLabel")
+emptyIcon.Size = UDim2.new(1, 0, 0, 60)
+emptyIcon.Position = UDim2.new(0, 0, 0.35, -30)
+emptyIcon.BackgroundTransparency = 1
+emptyIcon.Text = "📦"
+emptyIcon.TextScaled = true
+emptyIcon.Font = Enum.Font.GothamBold
+emptyIcon.Parent = emptyHolder
 
 local emptyLabel = Instance.new("TextLabel")
-emptyLabel.Size = UDim2.new(1, -24, 0, 30)
-emptyLabel.Position = UDim2.new(0, 12, 0, 54)
+emptyLabel.Size = UDim2.new(1, -40, 0, 30)
+emptyLabel.Position = UDim2.new(0, 20, 0.35, 38)
 emptyLabel.BackgroundTransparency = 1
-emptyLabel.Text = "Empty — pick up a machine to store it here."
-emptyLabel.TextColor3 = Color3.fromRGB(190, 180, 210)
+emptyLabel.Text = "Nothing in your stash yet."
+emptyLabel.TextColor3 = Color3.fromRGB(100, 80, 130)
 emptyLabel.TextScaled = true
 emptyLabel.Font = Enum.Font.Gotham
-emptyLabel.TextXAlignment = Enum.TextXAlignment.Left
-emptyLabel.Visible = false
-emptyLabel.Parent = panel
+emptyLabel.Parent = emptyHolder
 
+-- Scroll area
 local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1, -16, 1, -56)
-scroll.Position = UDim2.new(0, 8, 0, 50)
+scroll.Size = UDim2.new(1, -16, 1, -60)
+scroll.Position = UDim2.new(0, 8, 0, 54)
 scroll.BackgroundTransparency = 1
 scroll.ScrollBarThickness = 4
 scroll.ScrollBarImageColor3 = ACCENT
@@ -97,22 +191,13 @@ local layout = Instance.new("UIListLayout")
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0, 6)
 layout.Parent = scroll
-do local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 4); pad.PaddingLeft = UDim.new(0, 4); pad.PaddingRight = UDim.new(0, 4); pad.Parent = scroll end
-
-local function makeRowButton(parent, text, color, posX, width)
-	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(0, width, 0, 34)
-	b.Position = UDim2.new(1, posX, 0.5, -17)
-	b.BackgroundColor3 = color
-	b.BorderSizePixel = 0
-	b.Text = text
-	b.TextColor3 = Color3.fromRGB(255, 255, 255)
-	b.Font = Enum.Font.GothamBold
-	b.TextScaled = true
-	b.Parent = parent
-	corner(b, 8)
-	local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 7); pad.PaddingBottom = UDim.new(0, 7); pad.Parent = b
-	return b
+do
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, 4)
+	pad.PaddingLeft = UDim.new(0, 4)
+	pad.PaddingRight = UDim.new(0, 4)
+	pad.PaddingBottom = UDim.new(0, 4)
+	pad.Parent = scroll
 end
 
 local function rebuild()
@@ -120,34 +205,116 @@ local function rebuild()
 		if child:IsA("Frame") then child:Destroy() end
 	end
 
-	emptyLabel.Visible = (#items == 0)
+	local count = #items
+	itemCountBadge.Text = tostring(count)
+	emptyHolder.Visible = (count == 0)
+	scroll.Visible = (count > 0)
 
 	for index, item in items do
 		local def = MachineData[item.id]
 		if def then
 			local card = Instance.new("Frame")
-			card.Size = UDim2.new(1, 0, 0, 56)
+			card.Size = UDim2.new(1, 0, 0, 64)
 			card.BackgroundColor3 = CARD_BG
 			card.BorderSizePixel = 0
 			card.LayoutOrder = index
 			card.Parent = scroll
-			corner(card, 10)
+			do
+				corner(card, 12)
+				stroke(card, Color3.fromRGB(50, 30, 80), 1)
+				local g = Instance.new("UIGradient")
+				g.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 22, 55)),
+					ColorSequenceKeypoint.new(1, CARD_BG),
+				})
+				g.Rotation = 0
+				g.Parent = card
+			end
 
-			local name = Instance.new("TextLabel")
-			name.Size = UDim2.new(1, -150, 1, 0)
-			name.Position = UDim2.new(0, 12, 0, 0)
-			name.BackgroundTransparency = 1
-			name.Text = def.displayName
-			name.TextColor3 = Color3.fromRGB(255, 240, 200)
-			name.Font = Enum.Font.GothamBold
-			name.TextScaled = true
-			name.TextXAlignment = Enum.TextXAlignment.Left
-			name.Parent = card
-			local np = Instance.new("UIPadding"); np.PaddingTop = UDim.new(0, 16); np.PaddingBottom = UDim.new(0, 16); np.Parent = name
+			-- Left accent bar
+			local accentBar = Instance.new("Frame")
+			accentBar.Size = UDim2.new(0, 5, 1, -16)
+			accentBar.Position = UDim2.new(0, 0, 0, 8)
+			accentBar.BackgroundColor3 = ACCENT
+			accentBar.BorderSizePixel = 0
+			accentBar.Parent = card
+			corner(accentBar, 3)
 
-			local placeBtn = makeRowButton(card, "Place", Color3.fromRGB(60, 120, 220), -138, 64)
-			local sellBtn  = makeRowButton(card, "🪙 " .. FormatNumber.format(GameConfig.machineSellValue(def)),
-				Color3.fromRGB(40, 150, 80), -70, 66)
+			-- Machine name
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Size = UDim2.new(1, -170, 1, 0)
+			nameLabel.Position = UDim2.new(0, 14, 0, 0)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Text = def.displayName
+			nameLabel.TextColor3 = Color3.fromRGB(240, 230, 255)
+			nameLabel.Font = Enum.Font.GothamBold
+			nameLabel.TextScaled = true
+			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+			nameLabel.Parent = card
+			do
+				local np = Instance.new("UIPadding")
+				np.PaddingTop = UDim.new(0, 12)
+				np.PaddingBottom = UDim.new(0, 12)
+				np.Parent = nameLabel
+			end
+
+			-- Place button
+			local placeBtn = Instance.new("TextButton")
+			placeBtn.Size = UDim2.new(0, 72, 0, 36)
+			placeBtn.Position = UDim2.new(1, -158, 0.5, -18)
+			placeBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 200)
+			placeBtn.BorderSizePixel = 0
+			placeBtn.Text = "Place"
+			placeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			placeBtn.Font = Enum.Font.GothamBold
+			placeBtn.TextScaled = true
+			placeBtn.AutoButtonColor = false
+			placeBtn.Parent = card
+			do
+				corner(placeBtn, 9)
+				local g = Instance.new("UIGradient")
+				g.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 80, 200)),
+					ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 120, 255)),
+				})
+				g.Rotation = 90
+				g.Parent = placeBtn
+			end
+			placeBtn.MouseEnter:Connect(function()
+				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(70, 110, 235)}):Play()
+			end)
+			placeBtn.MouseLeave:Connect(function()
+				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(40, 80, 200)}):Play()
+			end)
+
+			-- Sell button
+			local sellBtn = Instance.new("TextButton")
+			sellBtn.Size = UDim2.new(0, 80, 0, 36)
+			sellBtn.Position = UDim2.new(1, -80, 0.5, -18)
+			sellBtn.BackgroundColor3 = Color3.fromRGB(130, 95, 0)
+			sellBtn.BorderSizePixel = 0
+			sellBtn.Text = "🪙 " .. FormatNumber.format(GameConfig.machineSellValue(def))
+			sellBtn.TextColor3 = GOLD_LIGHT
+			sellBtn.Font = Enum.Font.GothamBold
+			sellBtn.TextScaled = true
+			sellBtn.AutoButtonColor = false
+			sellBtn.Parent = card
+			do
+				corner(sellBtn, 9)
+				local g = Instance.new("UIGradient")
+				g.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 100, 0)),
+					ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 145, 0)),
+				})
+				g.Rotation = 90
+				g.Parent = sellBtn
+			end
+			sellBtn.MouseEnter:Connect(function()
+				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(180, 130, 0)}):Play()
+			end)
+			sellBtn.MouseLeave:Connect(function()
+				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(130, 95, 0)}):Play()
+			end)
 
 			local capturedIndex = index
 			local capturedId = item.id
@@ -170,9 +337,19 @@ Remotes.InventoryUpdated.OnClientEvent:Connect(function(serverItems)
 end)
 
 local open = false
+local function openPanel()
+	panel.Position = PANEL_CLOSED_POS
+	panel.Visible = true
+	TweenService:Create(panel, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = PANEL_OPEN_POS}):Play()
+end
+local function closePanel()
+	TweenService:Create(panel, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = PANEL_CLOSED_POS}):Play()
+	task.delay(0.2, function() panel.Visible = false end)
+end
+
 toggleBtn.MouseButton1Click:Connect(function()
 	open = not open
-	panel.Visible = open
+	if open then openPanel() else closePanel() end
 end)
 
 rebuild()
