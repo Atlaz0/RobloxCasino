@@ -116,6 +116,7 @@ headerTitle.BackgroundTransparency = 1
 headerTitle.Text = "DAILY REWARD"
 headerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 headerTitle.TextScaled = true
+UIStyle.maxText(headerTitle, 24)
 headerTitle.Font = Enum.Font.GothamBlack
 headerTitle.ZIndex = 3
 headerTitle.Parent = header
@@ -157,6 +158,7 @@ for i = 1, 7 do
 	dl.TextScaled = true
 	dl.Font = Enum.Font.GothamBold
 	dl.Parent = dot
+	UIStyle.maxText(dl, 13)
 	table.insert(streakDots, {frame = dot, stroke = ds, label = dl})
 end
 
@@ -176,7 +178,7 @@ do
 	rh.Parent = rewardHolder
 end
 
-local rewardChip = UIStyle.chipIcon(30)
+local rewardChip = UIStyle.chipIcon(24)
 rewardChip.LayoutOrder = 1
 rewardChip.Parent = rewardHolder
 
@@ -187,7 +189,7 @@ rewardLabel.LayoutOrder = 2
 rewardLabel.BackgroundTransparency = 1
 rewardLabel.Text = "0 chips"
 rewardLabel.TextColor3 = GOLD
-rewardLabel.TextSize = 34
+rewardLabel.TextSize = 26
 rewardLabel.Font = Enum.Font.GothamBlack
 rewardLabel.TextXAlignment = Enum.TextXAlignment.Left
 rewardLabel.Parent = rewardHolder
@@ -198,13 +200,14 @@ claimBtn.Name = "ClaimButton"
 claimBtn.Size = UDim2.new(1, -24, 0, 56)
 claimBtn.Position = UDim2.new(0, 12, 1, -68)
 claimBtn.BackgroundColor3 = Color3.fromRGB(0, 160, 60)
-claimBtn.Text = "✦  Claim Reward  ✦"
+claimBtn.Text = "Claim Reward"
 claimBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 claimBtn.TextScaled = true
 claimBtn.Font = Enum.Font.GothamBold
 claimBtn.BorderSizePixel = 0
 claimBtn.AutoButtonColor = false
 claimBtn.Parent = panel
+UIStyle.maxText(claimBtn, 20)
 local claimGradient = Instance.new("UIGradient")
 claimGradient.Color = ColorSequence.new({
 	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 60)),
@@ -272,7 +275,7 @@ local function refreshUI()
 	updateStreakDots()
 
 	if status.canClaim then
-		claimBtn.Text = "✦  Claim Reward  ✦"
+		claimBtn.Text = "Claim Reward"
 		claimGradient.Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 60)),
 			ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 220, 100)),

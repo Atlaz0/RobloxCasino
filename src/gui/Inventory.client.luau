@@ -101,6 +101,7 @@ headerTitle.BackgroundTransparency = 1
 headerTitle.Text = "STASH"
 headerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 headerTitle.TextScaled = true
+UIStyle.maxText(headerTitle, 24)
 headerTitle.Font = Enum.Font.GothamBlack
 headerTitle.TextXAlignment = Enum.TextXAlignment.Left
 headerTitle.ZIndex = 3
@@ -114,6 +115,7 @@ itemCountBadge.BackgroundColor3 = Color3.fromRGB(40, 20, 70)
 itemCountBadge.Text = "0"
 itemCountBadge.TextColor3 = GOLD
 itemCountBadge.TextScaled = true
+UIStyle.maxText(itemCountBadge, 15)
 itemCountBadge.Font = Enum.Font.GothamBold
 itemCountBadge.ZIndex = 4
 itemCountBadge.Parent = header
@@ -150,6 +152,7 @@ emptyLabel.BackgroundTransparency = 1
 emptyLabel.Text = "Nothing in your stash yet."
 emptyLabel.TextColor3 = Color3.fromRGB(100, 80, 130)
 emptyLabel.TextScaled = true
+UIStyle.maxText(emptyLabel, 16)
 emptyLabel.Font = Enum.Font.Gotham
 emptyLabel.Parent = emptyHolder
 
@@ -226,6 +229,7 @@ local function rebuild()
 			nameLabel.TextColor3 = Color3.fromRGB(240, 230, 255)
 			nameLabel.Font = Enum.Font.GothamBold
 			nameLabel.TextScaled = true
+			UIStyle.maxText(nameLabel, 18)
 			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 			nameLabel.Parent = card
 			do
@@ -245,6 +249,7 @@ local function rebuild()
 			placeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 			placeBtn.Font = Enum.Font.GothamBold
 			placeBtn.TextScaled = true
+			UIStyle.maxText(placeBtn, 16)
 			placeBtn.AutoButtonColor = false
 			placeBtn.Parent = card
 			do
@@ -298,6 +303,7 @@ local function rebuild()
 			sellPrice.TextColor3 = GOLD_LIGHT
 			sellPrice.Font = Enum.Font.GothamBold
 			sellPrice.TextScaled = true
+			UIStyle.maxText(sellPrice, 16)
 			sellPrice.TextXAlignment = Enum.TextXAlignment.Center
 			sellPrice.ZIndex = 3
 			sellPrice.Parent = sellBtn

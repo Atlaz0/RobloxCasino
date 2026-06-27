@@ -179,6 +179,15 @@ function UIStyle.closeButton(size: number): TextButton
 	return btn
 end
 
+-- Caps how large a TextScaled label may grow. TextScaled fills the whole box, so big
+-- boxes produce oversized text that overlaps neighbours — this keeps it readable but tidy.
+function UIStyle.maxText(obj: Instance, maxSize: number): UITextSizeConstraint
+	local c = Instance.new("UITextSizeConstraint")
+	c.MaxTextSize = maxSize
+	c.Parent = obj
+	return c
+end
+
 -- Standard hover brighten/restore for an action button's BackgroundColor3.
 function UIStyle.hoverColor(btn: GuiButton, base: Color3, hover: Color3)
 	btn.MouseEnter:Connect(function()

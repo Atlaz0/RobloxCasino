@@ -102,6 +102,7 @@ title.Font = Enum.Font.GothamBlack
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.ZIndex = 3
 title.Parent = header
+UIStyle.maxText(title, 22)
 
 -- Close button (drawn X)
 local closeBtn = UIStyle.closeButton(30)
@@ -120,6 +121,7 @@ info.TextScaled = true
 info.Font = Enum.Font.GothamBold
 info.TextXAlignment = Enum.TextXAlignment.Left
 info.Parent = panel
+UIStyle.maxText(info, 15)
 
 -- Pick Up button
 local pickupBtn = Instance.new("TextButton")
@@ -135,6 +137,7 @@ pickupBtn.TextScaled = true
 pickupBtn.AutoButtonColor = false
 pickupBtn.Parent = panel
 corner(pickupBtn, 12)
+UIStyle.maxText(pickupBtn, 18)
 do
 	local g = Instance.new("UIGradient")
 	g.Color = ColorSequence.new({
@@ -166,6 +169,7 @@ sellBtn.TextScaled = true
 sellBtn.AutoButtonColor = false
 sellBtn.Parent = panel
 corner(sellBtn, 12)
+UIStyle.maxText(sellBtn, 18)
 do
 	local g = Instance.new("UIGradient")
 	g.Color = ColorSequence.new({

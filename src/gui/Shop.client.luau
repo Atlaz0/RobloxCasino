@@ -122,6 +122,7 @@ titleLabel.Font = Enum.Font.GothamBlack
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.ZIndex = 3
 titleLabel.Parent = header
+UIStyle.maxText(titleLabel, 24)
 
 local closeBtn = UIStyle.closeButton(28)
 closeBtn.Position = UDim2.new(1, -38, 0.5, -14)
@@ -139,6 +140,7 @@ hint.TextScaled = true
 hint.Font = Enum.Font.Gotham
 hint.TextXAlignment = Enum.TextXAlignment.Left
 hint.Parent = panel
+UIStyle.maxText(hint, 13)
 
 -- Scroll area
 local scroll = Instance.new("ScrollingFrame")
@@ -192,6 +194,7 @@ local function phaseLabel(phase: number): Frame
 	lt.TextScaled = true
 	lt.TextXAlignment = Enum.TextXAlignment.Left
 	lt.Parent = lf
+	UIStyle.maxText(lt, 15)
 
 	return lf
 end
@@ -232,6 +235,7 @@ for i, def in ipairs(sortedMachines) do
 	nameLabel.TextScaled = true
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 	nameLabel.Parent = card
+	UIStyle.maxText(nameLabel, 18)
 
 	local incomeLabel = Instance.new("TextLabel")
 	incomeLabel.Size = UDim2.new(1, -126, 0, 22)
@@ -243,6 +247,7 @@ for i, def in ipairs(sortedMachines) do
 	incomeLabel.TextScaled = true
 	incomeLabel.TextXAlignment = Enum.TextXAlignment.Left
 	incomeLabel.Parent = card
+	UIStyle.maxText(incomeLabel, 14)
 
 	local buyBtn = Instance.new("TextButton")
 	buyBtn.Size = UDim2.new(0, 104, 0, 44)
@@ -274,6 +279,7 @@ for i, def in ipairs(sortedMachines) do
 	priceLabel.TextXAlignment = Enum.TextXAlignment.Center
 	priceLabel.ZIndex = 3
 	priceLabel.Parent = buyBtn
+	UIStyle.maxText(priceLabel, 18)
 
 	buyBtn.MouseEnter:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
