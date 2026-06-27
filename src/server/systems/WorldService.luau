@@ -53,8 +53,15 @@ end
 
 -- Clones `prefab`, drops it so the bottom of its bounding box sits on GROUND_TOP_Y at
 -- (x, z), and applies a random Y-axis rotation for natural variety.
+local function stripScripts(inst: Instance)
+	for _, d in inst:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then d:Destroy() end
+	end
+end
+
 local function placeOnGround(prefab: Instance, x: number, z: number, parent: Instance): Instance
 	local clone = prefab:Clone()
+	stripScripts(clone) -- VillageAssetPack models ship with embedded "Structure" scripts
 
 	if clone:IsA("Model") then
 		local boundsCFrame, boundsSize = clone:GetBoundingBox()
