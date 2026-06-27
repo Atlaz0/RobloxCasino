@@ -75,6 +75,19 @@ one-way, their workflow is:
 Place file (`.rbxl`) can also be committed periodically as a full snapshot:
 - File → Save to File → save as `CasinoEmpire.rbxl` in project root → commit
 
+### Model gotchas (CRITICAL — caused repeated bugs)
+- **No Unions/CSG in casino machine models.** A `UnionOperation` frequently does NOT
+  render its shape when the server clones the model at runtime — the part is there and
+  anchored, but draws invisible. This made roulette/poker/blackjack table tops vanish in
+  game while cards/chips/legs still showed. Build surfaces from plain `Part`s (or
+  `Separate` the union back into parts) before saving the `.rbxm`. MeshParts are fine.
+- **Where machine models go:** casino machine `.rbxm` files live in `assets/machines/`
+  (synced to `ReplicatedStorage.Machines`); world decoration packs live in
+  `assets/models/` (synced to `ServerStorage.Assets`). The **filename = the machine's
+  `modelName`** in MachineData (matched case/space-insensitively), e.g. `RouletteTable.rbxm`.
+- Embedded scripts in placed machine models are auto-stripped on clone, but free Toolbox
+  models still ship junk — prefer clean models.
+
 ### Code / logic work (your domain)
 Edit `.luau` files in `src/`. Rojo syncs them live. No Studio interaction needed
 for pure logic changes.
