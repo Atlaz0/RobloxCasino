@@ -251,9 +251,10 @@ local function init()
 end
 
 return {
-	init                   = init,
-	beginPlacement         = beginPlacement,
+	init                    = init,
+	beginPlacement          = beginPlacement,
 	beginInventoryPlacement = beginInventoryPlacement,
-	cancelPlacement        = cancelPlacement,
-	isPlotClaimed          = function() return plotInfo.claimed end,
+	cancelPlacement         = cancelPlacement,
+	isPlotClaimed           = function() return plotInfo.claimed end,
+	isPlacing               = function() return activeMachineId ~= nil end,
 }
