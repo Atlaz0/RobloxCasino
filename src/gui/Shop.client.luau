@@ -82,14 +82,14 @@ local panel = Instance.new("Frame")
 panel.Name = "ShopPanel"
 panel.Size = UDim2.new(0, 360, 0, 520)
 panel.Position = PANEL_CLOSED
-panel.BackgroundColor3 = BG_PANEL
-panel.BackgroundTransparency = 0.3
+panel.BackgroundColor3 = UIStyle.PANEL_TOP
+panel.BackgroundTransparency = 0.15
 panel.BorderSizePixel = 0
 panel.Visible = false
 panel.Parent = screenGui
 corner(panel, 18)
 stroke(panel, ACCENT, 1.5)
-gradient(panel, Color3.fromRGB(22, 14, 38), Color3.fromRGB(12, 8, 22), 180)
+gradient(panel, UIStyle.PANEL_TOP, UIStyle.PANEL_BOTTOM, 180)
 
 -- Panel header
 local header = Instance.new("Frame")
@@ -106,7 +106,7 @@ gradient(header, Color3.fromRGB(255, 190, 30), Color3.fromRGB(160, 90, 255), 0)
 local headerBottomClip = Instance.new("Frame")
 headerBottomClip.Size = UDim2.new(1, 0, 0, 18)
 headerBottomClip.Position = UDim2.new(0, 0, 1, -18)
-headerBottomClip.BackgroundColor3 = Color3.fromRGB(22, 14, 38)
+headerBottomClip.BackgroundColor3 = UIStyle.PANEL_TOP
 headerBottomClip.BorderSizePixel = 0
 headerBottomClip.ZIndex = 2
 headerBottomClip.Parent = header
@@ -123,19 +123,10 @@ titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.ZIndex = 3
 titleLabel.Parent = header
 
-local closeBtn = Instance.new("TextButton")
-closeBtn.Name = "CloseBtn"
-closeBtn.Size = UDim2.new(0, 26, 0, 26)
-closeBtn.Position = UDim2.new(1, -36, 0.5, -13)
-closeBtn.BackgroundColor3 = Color3.fromRGB(15, 8, 28)
-closeBtn.Text = "✕"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextScaled = true
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.BorderSizePixel = 0
+local closeBtn = UIStyle.closeButton(28)
+closeBtn.Position = UDim2.new(1, -38, 0.5, -14)
 closeBtn.ZIndex = 4
 closeBtn.Parent = header
-corner(closeBtn, 8)
 
 -- Hint bar below header
 local hint = Instance.new("TextLabel")
@@ -177,11 +168,11 @@ local function phaseLabel(phase: number): Frame
 
 	local lf = Instance.new("Frame")
 	lf.Size = UDim2.new(1, 0, 0, 28)
-	lf.BackgroundColor3 = Color3.fromRGB(18, 10, 30)
+	lf.BackgroundColor3 = UIStyle.PANEL_BOTTOM
 	lf.BorderSizePixel = 0
 	lf.LayoutOrder = phase * 1000 - 1
 	corner(lf, 6)
-	stroke(lf, phaseColor, 0.5)
+	stroke(lf, phaseColor, 1)
 
 	local accentBar = Instance.new("Frame")
 	accentBar.Size = UDim2.new(0, 6, 1, 0)
@@ -216,12 +207,12 @@ for i, def in ipairs(sortedMachines) do
 
 	local card = Instance.new("Frame")
 	card.Size = UDim2.new(1, 0, 0, 88)
-	card.BackgroundColor3 = Color3.fromRGB(28, 18, 44)
+	card.BackgroundColor3 = UIStyle.CARD_BG
 	card.BorderSizePixel = 0
 	card.LayoutOrder = def.phase * 1000 + i
 	card.Parent = scroll
 	corner(card, 12)
-	gradient(card, Color3.fromRGB(28, 18, 44), Color3.fromRGB(20, 12, 32), 135)
+	gradient(card, UIStyle.CARD_BG, Color3.fromRGB(42, 34, 62), 135)
 
 	local cardAccentBar = Instance.new("Frame")
 	cardAccentBar.Size = UDim2.new(0, 5, 1, 0)
@@ -236,7 +227,7 @@ for i, def in ipairs(sortedMachines) do
 	nameLabel.Position = UDim2.new(0, 18, 0, 12)
 	nameLabel.BackgroundTransparency = 1
 	nameLabel.Text = def.displayName
-	nameLabel.TextColor3 = Color3.fromRGB(255, 235, 180)
+	nameLabel.TextColor3 = Color3.fromRGB(255, 245, 215)
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.TextScaled = true
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -254,26 +245,35 @@ for i, def in ipairs(sortedMachines) do
 	incomeLabel.Parent = card
 
 	local buyBtn = Instance.new("TextButton")
-	buyBtn.Size = UDim2.new(0, 100, 0, 44)
-	buyBtn.Position = UDim2.new(1, -110, 0.5, -22)
+	buyBtn.Size = UDim2.new(0, 104, 0, 44)
+	buyBtn.Position = UDim2.new(1, -114, 0.5, -22)
 	buyBtn.BackgroundColor3 = Color3.fromRGB(220, 160, 0)
 	buyBtn.BorderSizePixel = 0
-	buyBtn.Text = FormatNumber.format(def.cost)
-	buyBtn.TextColor3 = Color3.fromRGB(20, 10, 0)
-	buyBtn.Font = Enum.Font.GothamBlack
-	buyBtn.TextScaled = true
+	buyBtn.Text = ""
+	buyBtn.AutoButtonColor = false
 	buyBtn.Parent = card
 	corner(buyBtn, 10)
 	gradient(buyBtn, Color3.fromRGB(220, 160, 0), Color3.fromRGB(255, 200, 30), 90)
 
-	local buyBtnPadding = Instance.new("UIPadding")
-	buyBtnPadding.PaddingLeft = UDim.new(0, 26)
-	buyBtnPadding.Parent = buyBtn
-
-	local chip = UIStyle.chipIcon(18)
-	chip.Position = UDim2.new(0, 8, 0.5, -9)
-	chip.ZIndex = buyBtn.ZIndex + 1
+	-- Chip on the left, price filling the rest — laid out so they never overlap.
+	local chip = UIStyle.chipIcon(20)
+	chip.AnchorPoint = Vector2.new(0, 0.5)
+	chip.Position = UDim2.new(0, 9, 0.5, 0)
+	chip.ZIndex = 3
 	chip.Parent = buyBtn
+
+	local priceLabel = Instance.new("TextLabel")
+	priceLabel.Size = UDim2.new(1, -38, 1, -14)
+	priceLabel.Position = UDim2.new(0, 33, 0.5, 0)
+	priceLabel.AnchorPoint = Vector2.new(0, 0.5)
+	priceLabel.BackgroundTransparency = 1
+	priceLabel.Text = FormatNumber.format(def.cost)
+	priceLabel.TextColor3 = Color3.fromRGB(20, 10, 0)
+	priceLabel.Font = Enum.Font.GothamBlack
+	priceLabel.TextScaled = true
+	priceLabel.TextXAlignment = Enum.TextXAlignment.Center
+	priceLabel.ZIndex = 3
+	priceLabel.Parent = buyBtn
 
 	buyBtn.MouseEnter:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {

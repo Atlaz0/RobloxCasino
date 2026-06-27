@@ -113,10 +113,15 @@ function MachineAssets.scale(model: Model, factor: number)
 end
 
 -- Positions `model` so its bottom rests on `surfaceY` at (x, z), preserving orientation.
+-- X/Z are centred on the model's WORLD-axis-aligned footprint (not Model:GetBoundingBox,
+-- whose centre is oriented to the model's pivot — for tilted/asymmetric .rbxm models that
+-- oriented centre is offset, which made placed machines drift into a plot corner).
 function MachineAssets.ground(model: Model, x: number, z: number, surfaceY: number)
-	local center = model:GetBoundingBox().Position
+	local minX, maxX, minZ, maxZ = MachineAssets.worldAABB(model)
+	local centerX = (minX + maxX) / 2
+	local centerZ = (minZ + maxZ) / 2
 	local bottom = MachineAssets.worldBottom(model)
-	local shift = Vector3.new(x - center.X, surfaceY - bottom, z - center.Z)
+	local shift = Vector3.new(x - centerX, surfaceY - bottom, z - centerZ)
 	model:PivotTo(CFrame.new(shift) * model:GetPivot())
 end
 

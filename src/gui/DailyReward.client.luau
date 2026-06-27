@@ -12,11 +12,11 @@ local UIStyle      = require(Shared.utils.UIStyle)
 local player    = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local BG_DARK    = Color3.fromRGB(12, 8, 20)
-local BG_PANEL   = Color3.fromRGB(20, 13, 35)
-local GOLD       = Color3.fromRGB(255, 200, 55)
-local GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
-local NEON_GREEN = Color3.fromRGB(80, 255, 140)
+local BG_DARK    = UIStyle.PANEL_TOP
+local BG_PANEL   = UIStyle.PANEL_BOTTOM
+local GOLD       = UIStyle.GOLD
+local GOLD_LIGHT = UIStyle.GOLD_LIGHT
+local NEON_GREEN = UIStyle.NEON_GREEN
 
 local status = { canClaim = false, secondsRemaining = 0, streak = 0, nextReward = 0 }
 
@@ -110,7 +110,8 @@ do
 	g.Parent = header
 end
 local headerTitle = Instance.new("TextLabel")
-headerTitle.Size = UDim2.new(1, 0, 1, 0)
+headerTitle.Size = UDim2.new(1, -52, 1, 0)
+headerTitle.Position = UDim2.new(0, 26, 0, 0)
 headerTitle.BackgroundTransparency = 1
 headerTitle.Text = "DAILY REWARD"
 headerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -118,6 +119,12 @@ headerTitle.TextScaled = true
 headerTitle.Font = Enum.Font.GothamBlack
 headerTitle.ZIndex = 3
 headerTitle.Parent = header
+
+-- Close button (drawn X)
+local closeBtn = UIStyle.closeButton(28)
+closeBtn.Position = UDim2.new(1, -38, 0.5, -14)
+closeBtn.ZIndex = 5
+closeBtn.Parent = header
 
 -- Streak dots row
 local dotsRow = Instance.new("Frame")
@@ -300,6 +307,11 @@ end
 toggleBtn.MouseButton1Click:Connect(function()
 	panelOpen = not panelOpen
 	if panelOpen then openPanel() else closePanel() end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	panelOpen = false
+	closePanel()
 end)
 
 claimBtn.MouseButton1Click:Connect(function()

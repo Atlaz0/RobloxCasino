@@ -16,12 +16,12 @@ local PlacementController = require(Client.controllers.PlacementController)
 local player    = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local BG_DARK    = Color3.fromRGB(12, 8, 20)
-local BG_PANEL   = Color3.fromRGB(20, 13, 35)
-local GOLD       = Color3.fromRGB(255, 200, 55)
-local GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
-local ACCENT     = Color3.fromRGB(160, 90, 255)
-local CARD_BG    = Color3.fromRGB(26, 16, 42)
+local BG_DARK    = UIStyle.PANEL_TOP
+local BG_PANEL   = UIStyle.PANEL_BOTTOM
+local GOLD       = UIStyle.GOLD
+local GOLD_LIGHT = UIStyle.GOLD_LIGHT
+local ACCENT     = UIStyle.ACCENT
+local CARD_BG    = UIStyle.CARD_BG
 
 local function corner(p, r) local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = p end
 local function stroke(p, col, t) local s = Instance.new("UIStroke"); s.Color = col; s.Thickness = t; s.Parent = p end
@@ -108,8 +108,8 @@ headerTitle.Parent = header
 
 local itemCountBadge = Instance.new("TextLabel")
 itemCountBadge.Name = "ItemCount"
-itemCountBadge.Size = UDim2.new(0, 40, 0, 24)
-itemCountBadge.Position = UDim2.new(1, -50, 0.5, -12)
+itemCountBadge.Size = UDim2.new(0, 38, 0, 24)
+itemCountBadge.Position = UDim2.new(1, -90, 0.5, -12)
 itemCountBadge.BackgroundColor3 = Color3.fromRGB(40, 20, 70)
 itemCountBadge.Text = "0"
 itemCountBadge.TextColor3 = GOLD
@@ -119,6 +119,12 @@ itemCountBadge.ZIndex = 4
 itemCountBadge.Parent = header
 corner(itemCountBadge, 12)
 stroke(itemCountBadge, GOLD, 1)
+
+-- Close button (drawn X)
+local closeBtn = UIStyle.closeButton(28)
+closeBtn.Position = UDim2.new(1, -38, 0.5, -14)
+closeBtn.ZIndex = 5
+closeBtn.Parent = header
 
 -- Empty state
 local emptyHolder = Instance.new("Frame")
@@ -264,10 +270,7 @@ local function rebuild()
 			sellBtn.Position = UDim2.new(1, -80, 0.5, -18)
 			sellBtn.BackgroundColor3 = Color3.fromRGB(130, 95, 0)
 			sellBtn.BorderSizePixel = 0
-			sellBtn.Text = FormatNumber.format(GameConfig.machineSellValue(def))
-			sellBtn.TextColor3 = GOLD_LIGHT
-			sellBtn.Font = Enum.Font.GothamBold
-			sellBtn.TextScaled = true
+			sellBtn.Text = ""
 			sellBtn.AutoButtonColor = false
 			sellBtn.Parent = card
 			do
@@ -279,14 +282,25 @@ local function rebuild()
 				})
 				g.Rotation = 90
 				g.Parent = sellBtn
-				local sp = Instance.new("UIPadding")
-				sp.PaddingLeft = UDim.new(0, 24)
-				sp.Parent = sellBtn
 			end
 			local sellChip = UIStyle.chipIcon(16)
-			sellChip.Position = UDim2.new(0, 6, 0.5, -8)
-			sellChip.ZIndex = sellBtn.ZIndex + 1
+			sellChip.AnchorPoint = Vector2.new(0, 0.5)
+			sellChip.Position = UDim2.new(0, 7, 0.5, 0)
+			sellChip.ZIndex = 3
 			sellChip.Parent = sellBtn
+
+			local sellPrice = Instance.new("TextLabel")
+			sellPrice.Size = UDim2.new(1, -30, 1, -10)
+			sellPrice.Position = UDim2.new(0, 27, 0.5, 0)
+			sellPrice.AnchorPoint = Vector2.new(0, 0.5)
+			sellPrice.BackgroundTransparency = 1
+			sellPrice.Text = FormatNumber.format(GameConfig.machineSellValue(def))
+			sellPrice.TextColor3 = GOLD_LIGHT
+			sellPrice.Font = Enum.Font.GothamBold
+			sellPrice.TextScaled = true
+			sellPrice.TextXAlignment = Enum.TextXAlignment.Center
+			sellPrice.ZIndex = 3
+			sellPrice.Parent = sellBtn
 			sellBtn.MouseEnter:Connect(function()
 				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(180, 130, 0)}):Play()
 			end)
@@ -328,6 +342,11 @@ end
 toggleBtn.MouseButton1Click:Connect(function()
 	open = not open
 	if open then openPanel() else closePanel() end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	open = false
+	closePanel()
 end)
 
 rebuild()

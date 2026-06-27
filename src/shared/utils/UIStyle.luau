@@ -7,9 +7,12 @@ local TweenService = game:GetService("TweenService")
 local UIStyle = {}
 
 -- Palette ------------------------------------------------------------------
-UIStyle.BG_DARK    = Color3.fromRGB(12, 8, 20)
-UIStyle.BG_PANEL   = Color3.fromRGB(20, 13, 35)
-UIStyle.CARD_BG    = Color3.fromRGB(26, 16, 42)
+-- Lighter, easier-to-read panels (the near-black originals were hard to see).
+UIStyle.BG_DARK      = Color3.fromRGB(28, 22, 42)
+UIStyle.BG_PANEL     = Color3.fromRGB(44, 36, 64)
+UIStyle.CARD_BG      = Color3.fromRGB(58, 49, 82)
+UIStyle.PANEL_TOP    = Color3.fromRGB(52, 43, 74)
+UIStyle.PANEL_BOTTOM = Color3.fromRGB(36, 29, 54)
 UIStyle.GOLD       = Color3.fromRGB(255, 200, 55)
 UIStyle.GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
 UIStyle.GOLD_DEEP  = Color3.fromRGB(226, 168, 30)
@@ -95,12 +98,12 @@ function UIStyle.toggleButton(props): TextButton
 	btn.Name = props.name
 	btn.Size = props.size or UDim2.fromOffset(154, 50)
 	btn.Position = props.position
-	btn.BackgroundColor3 = Color3.fromRGB(40, 26, 60)
+	btn.BackgroundColor3 = Color3.fromRGB(56, 44, 82)
 	btn.AutoButtonColor = false
 	btn.Text = ""
 	btn.BorderSizePixel = 0
 	UIStyle.corner(btn, 14)
-	UIStyle.gradient(btn, Color3.fromRGB(52, 33, 78), Color3.fromRGB(28, 17, 44), 90)
+	UIStyle.gradient(btn, Color3.fromRGB(70, 54, 100), Color3.fromRGB(42, 32, 62), 90)
 	local s = UIStyle.stroke(btn, props.accent, 2)
 
 	-- A colored rounded icon-chip on the left in place of an emoji.
@@ -135,6 +138,43 @@ function UIStyle.toggleButton(props): TextButton
 	end)
 	btn.MouseLeave:Connect(function()
 		TweenService:Create(s, TweenInfo.new(0.15), { Thickness = 2, Color = props.accent }):Play()
+	end)
+	return btn
+end
+
+-- A close (✕) button drawn from two rotated bars — the "✕" glyph renders as a
+-- tofu box in the Gotham fonts, so we draw the X instead. Connect MouseButton1Click
+-- on the returned button. Pass it a parent and it sits top-right by default.
+function UIStyle.closeButton(size: number): TextButton
+	local btn = Instance.new("TextButton")
+	btn.Name = "CloseButton"
+	btn.Size = UDim2.fromOffset(size, size)
+	btn.Text = ""
+	btn.AutoButtonColor = false
+	btn.BackgroundColor3 = Color3.fromRGB(48, 34, 66)
+	btn.BorderSizePixel = 0
+	btn.ZIndex = 6
+	UIStyle.corner(btn, math.floor(size / 3))
+	UIStyle.stroke(btn, Color3.fromRGB(130, 100, 170), 1.5)
+
+	for _, rot in { 45, -45 } do
+		local bar = Instance.new("Frame")
+		bar.AnchorPoint = Vector2.new(0.5, 0.5)
+		bar.Position = UDim2.fromScale(0.5, 0.5)
+		bar.Size = UDim2.new(0, math.floor(size * 0.5), 0, math.max(2, math.floor(size * 0.14)))
+		bar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		bar.BorderSizePixel = 0
+		bar.Rotation = rot
+		bar.ZIndex = 7
+		bar.Parent = btn
+		UIStyle.corner(bar, 2)
+	end
+
+	btn.MouseEnter:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.12), { BackgroundColor3 = UIStyle.NEON_RED }):Play()
+	end)
+	btn.MouseLeave:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.12), { BackgroundColor3 = Color3.fromRGB(48, 34, 66) }):Play()
 	end)
 	return btn
 end

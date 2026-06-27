@@ -3,6 +3,7 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService      = game:GetService("TweenService")
 local UserInputService  = game:GetService("UserInputService")
+local RunService        = game:GetService("RunService")
 
 ReplicatedStorage:WaitForChild("Remotes", 15)
 local Shared       = ReplicatedStorage:WaitForChild("Shared")
@@ -15,18 +16,22 @@ local UIStyle      = require(Shared.utils.UIStyle)
 local player    = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local BG_DARK    = Color3.fromRGB(12, 8, 20)
-local BG_PANEL   = Color3.fromRGB(20, 13, 35)
-local GOLD       = Color3.fromRGB(255, 200, 55)
-local GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
-local ACCENT     = Color3.fromRGB(160, 90, 255)
-local NEON_GREEN = Color3.fromRGB(80, 255, 140)
-local CARD_BG    = Color3.fromRGB(26, 16, 42)
+local BG_DARK    = UIStyle.PANEL_TOP
+local BG_PANEL   = UIStyle.PANEL_BOTTOM
+local GOLD       = UIStyle.GOLD
+local GOLD_LIGHT = UIStyle.GOLD_LIGHT
+local ACCENT     = UIStyle.ACCENT
+local NEON_GREEN = UIStyle.NEON_GREEN
+local CARD_BG    = UIStyle.CARD_BG
+
+-- How far the player can walk from the machine before its menu auto-closes.
+local AUTO_CLOSE_DISTANCE = 30
 
 local function corner(p, r) local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = p end
 local function stroke(p, col, t) local s = Instance.new("UIStroke"); s.Color = col; s.Thickness = t; s.Parent = p end
 
 local currentUid: string? = nil
+local currentModel: Instance? = nil
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MachineMenu"
@@ -98,27 +103,11 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 title.ZIndex = 3
 title.Parent = header
 
--- Close button
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
+-- Close button (drawn X)
+local closeBtn = UIStyle.closeButton(30)
 closeBtn.Position = UDim2.new(1, -40, 0, 9)
-closeBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 60)
-closeBtn.Text = "✕"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextScaled = true
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.BorderSizePixel = 0
-closeBtn.ZIndex = 4
-closeBtn.AutoButtonColor = false
+closeBtn.ZIndex = 5
 closeBtn.Parent = panel
-corner(closeBtn, 15)
-stroke(closeBtn, Color3.fromRGB(80, 50, 110), 1.5)
-closeBtn.MouseEnter:Connect(function()
-	TweenService:Create(closeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(70, 30, 90)}):Play()
-end)
-closeBtn.MouseLeave:Connect(function()
-	TweenService:Create(closeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(40, 20, 60)}):Play()
-end)
 
 -- Income info line
 local info = Instance.new("TextLabel")
@@ -202,12 +191,14 @@ sellBtn.MouseLeave:Connect(function()
 end)
 
 local function closeMenu()
+	if not panel.Visible then return end
 	TweenService:Create(panelScale, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Scale = 0.05}):Play()
 	task.delay(0.15, function()
 		panel.Visible = false
 		panelScale.Scale = 0.1
 	end)
 	currentUid = nil
+	currentModel = nil
 end
 
 local function openMenu(model: Instance)
@@ -217,6 +208,7 @@ local function openMenu(model: Instance)
 	if not uid or not def then return end
 
 	currentUid = uid
+	currentModel = model
 	title.Text = def.displayName
 	sellBtn.Text = "Sell   " .. FormatNumber.format(GameConfig.machineSellValue(def))
 	info.Text = "+" .. FormatNumber.format(def.incomePerSecond) .. " chips/sec"
@@ -224,6 +216,29 @@ local function openMenu(model: Instance)
 	panel.Visible = true
 	TweenService:Create(panelScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
 end
+
+-- Auto-close the menu once the player walks away from the machine (or it's removed).
+RunService.Heartbeat:Connect(function()
+	if not panel.Visible or not currentModel then return end
+
+	if not currentModel.Parent then
+		closeMenu()
+		return
+	end
+
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	local pivotOk, pivot = pcall(function()
+		return (currentModel :: any):GetPivot().Position
+	end)
+	if not pivotOk then return end
+
+	if (root.Position - pivot).Magnitude > AUTO_CLOSE_DISTANCE then
+		closeMenu()
+	end
+end)
 
 local function machineFromDetector(cd: ClickDetector): Instance?
 	local inst: Instance? = cd.Parent
