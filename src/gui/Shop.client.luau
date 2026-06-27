@@ -12,16 +12,16 @@ local UIStyle      = require(Shared.utils.UIStyle)
 local Client = Players.LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("Client")
 local PlacementController = require(Client.controllers.PlacementController)
 
-local BG_DARK    = Color3.fromRGB(12, 8, 20)
-local BG_PANEL   = Color3.fromRGB(20, 13, 35)
-local GOLD       = Color3.fromRGB(255, 200, 55)
-local GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
-local ACCENT     = Color3.fromRGB(160, 90, 255)
-local NEON_GREEN = Color3.fromRGB(80, 255, 140)
+local BG_DARK    = UIStyle.BG_DARK
+local BG_PANEL   = UIStyle.BG_PANEL
+local GOLD       = UIStyle.GOLD
+local GOLD_LIGHT = UIStyle.GOLD_LIGHT
+local ACCENT     = UIStyle.ACCENT
+local NEON_GREEN = UIStyle.NEON_GREEN
 local PHASE_COLORS = {
-	Color3.fromRGB(255, 190, 30),
-	Color3.fromRGB(160, 90, 255),
-	Color3.fromRGB(0, 220, 220),
+	UIStyle.GOLD,        -- Phase 1
+	UIStyle.ACCENT,      -- Phase 2 (Dry Sage)
+	UIStyle.NEON_BLUE,   -- Phase 3 (muted slate-blue)
 }
 
 local PANEL_CLOSED = UDim2.new(1, 20, 1, -646)
@@ -96,11 +96,10 @@ local header = Instance.new("Frame")
 header.Name = "Header"
 header.Size = UDim2.new(1, 0, 0, 52)
 header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = Color3.fromRGB(255, 190, 30)
+header.BackgroundColor3 = UIStyle.HEADER
 header.BorderSizePixel = 0
 header.Parent = panel
 corner(header, 18)
-gradient(header, Color3.fromRGB(255, 190, 30), Color3.fromRGB(160, 90, 255), 0)
 
 -- Clip the bottom corners of the header so it blends with panel body
 local headerBottomClip = Instance.new("Frame")
@@ -116,7 +115,7 @@ titleLabel.Size = UDim2.new(1, -60, 1, 0)
 titleLabel.Position = UDim2.new(0, 14, 0, 0)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "CASINO SHOP"
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextColor3 = UIStyle.TEXT
 titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.GothamBlack
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -135,7 +134,7 @@ hint.Size = UDim2.new(1, -24, 0, 18)
 hint.Position = UDim2.new(0, 12, 0, 58)
 hint.BackgroundTransparency = 1
 hint.Text = "Buy a machine, then click your plot to place it."
-hint.TextColor3 = Color3.fromRGB(190, 170, 220)
+hint.TextColor3 = UIStyle.TEXT_DIM
 hint.TextScaled = true
 hint.Font = Enum.Font.Gotham
 hint.TextXAlignment = Enum.TextXAlignment.Left
@@ -215,7 +214,7 @@ for i, def in ipairs(sortedMachines) do
 	card.LayoutOrder = def.phase * 1000 + i
 	card.Parent = scroll
 	corner(card, 12)
-	gradient(card, UIStyle.CARD_BG, Color3.fromRGB(42, 34, 62), 135)
+	gradient(card, UIStyle.CARD_BG, UIStyle.PANEL_BOTTOM, 135)
 
 	local cardAccentBar = Instance.new("Frame")
 	cardAccentBar.Size = UDim2.new(0, 5, 1, 0)
@@ -230,7 +229,7 @@ for i, def in ipairs(sortedMachines) do
 	nameLabel.Position = UDim2.new(0, 18, 0, 12)
 	nameLabel.BackgroundTransparency = 1
 	nameLabel.Text = def.displayName
-	nameLabel.TextColor3 = Color3.fromRGB(255, 245, 215)
+	nameLabel.TextColor3 = UIStyle.TEXT
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.TextScaled = true
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -252,13 +251,13 @@ for i, def in ipairs(sortedMachines) do
 	local buyBtn = Instance.new("TextButton")
 	buyBtn.Size = UDim2.new(0, 104, 0, 44)
 	buyBtn.Position = UDim2.new(1, -114, 0.5, -22)
-	buyBtn.BackgroundColor3 = Color3.fromRGB(220, 160, 0)
+	buyBtn.BackgroundColor3 = UIStyle.GOLD_DEEP
 	buyBtn.BorderSizePixel = 0
 	buyBtn.Text = ""
 	buyBtn.AutoButtonColor = false
 	buyBtn.Parent = card
 	corner(buyBtn, 10)
-	gradient(buyBtn, Color3.fromRGB(220, 160, 0), Color3.fromRGB(255, 200, 30), 90)
+	gradient(buyBtn, UIStyle.GOLD_DEEP, UIStyle.GOLD, 90)
 
 	-- Chip on the left, price filling the rest — laid out so they never overlap.
 	local chip = UIStyle.chipIcon(20)
@@ -273,7 +272,7 @@ for i, def in ipairs(sortedMachines) do
 	priceLabel.AnchorPoint = Vector2.new(0, 0.5)
 	priceLabel.BackgroundTransparency = 1
 	priceLabel.Text = FormatNumber.format(def.cost)
-	priceLabel.TextColor3 = Color3.fromRGB(20, 10, 0)
+	priceLabel.TextColor3 = UIStyle.BG_DARK
 	priceLabel.Font = Enum.Font.GothamBlack
 	priceLabel.TextScaled = true
 	priceLabel.TextXAlignment = Enum.TextXAlignment.Center
@@ -283,12 +282,12 @@ for i, def in ipairs(sortedMachines) do
 
 	buyBtn.MouseEnter:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundColor3 = Color3.fromRGB(255, 215, 60),
+			BackgroundColor3 = UIStyle.GOLD_LIGHT,
 		}):Play()
 	end)
 	buyBtn.MouseLeave:Connect(function()
 		TweenService:Create(buyBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundColor3 = Color3.fromRGB(220, 160, 0),
+			BackgroundColor3 = UIStyle.GOLD_DEEP,
 		}):Play()
 	end)
 

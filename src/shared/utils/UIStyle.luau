@@ -7,22 +7,24 @@ local TweenService = game:GetService("TweenService")
 local UIStyle = {}
 
 -- Palette ------------------------------------------------------------------
--- Lighter, easier-to-read panels (the near-black originals were hard to see).
-UIStyle.BG_DARK      = Color3.fromRGB(28, 22, 42)
-UIStyle.BG_PANEL     = Color3.fromRGB(44, 36, 64)
-UIStyle.CARD_BG      = Color3.fromRGB(58, 49, 82)
-UIStyle.PANEL_TOP    = Color3.fromRGB(52, 43, 74)
-UIStyle.PANEL_BOTTOM = Color3.fromRGB(36, 29, 54)
-UIStyle.GOLD       = Color3.fromRGB(255, 200, 55)
-UIStyle.GOLD_LIGHT = Color3.fromRGB(255, 235, 130)
-UIStyle.GOLD_DEEP  = Color3.fromRGB(226, 168, 30)
-UIStyle.ACCENT     = Color3.fromRGB(160, 90, 255)
-UIStyle.ACCENT_LT  = Color3.fromRGB(200, 150, 255)
-UIStyle.NEON_GREEN = Color3.fromRGB(80, 255, 140)
-UIStyle.NEON_RED   = Color3.fromRGB(255, 60, 80)
-UIStyle.NEON_BLUE  = Color3.fromRGB(80, 150, 255)
-UIStyle.TEXT       = Color3.fromRGB(245, 240, 255)
-UIStyle.TEXT_DIM   = Color3.fromRGB(170, 160, 195)
+-- Muted natural theme: dark slate grey, dim grey, ebony, ivory, dry sage.
+UIStyle.BG_DARK      = Color3.fromRGB(54, 69, 59)    -- Dark Slate Grey
+UIStyle.BG_PANEL     = Color3.fromRGB(89, 104, 105)  -- Dim Grey
+UIStyle.CARD_BG      = Color3.fromRGB(101, 116, 113) -- a touch lighter than the panel
+UIStyle.PANEL_TOP    = Color3.fromRGB(96, 111, 110)  -- subtle same-family panel gradient
+UIStyle.PANEL_BOTTOM = Color3.fromRGB(82, 95, 92)
+UIStyle.HEADER       = Color3.fromRGB(54, 69, 59)    -- solid header (Dark Slate Grey)
+-- Currency coin stays gold so money reads clearly, just muted to fit the theme.
+UIStyle.GOLD       = Color3.fromRGB(214, 196, 120)
+UIStyle.GOLD_LIGHT = Color3.fromRGB(235, 224, 170)
+UIStyle.GOLD_DEEP  = Color3.fromRGB(176, 156, 86)
+UIStyle.ACCENT     = Color3.fromRGB(194, 193, 165)   -- Dry Sage
+UIStyle.ACCENT_LT  = Color3.fromRGB(222, 221, 198)
+UIStyle.NEON_GREEN = Color3.fromRGB(150, 190, 140)   -- muted sage-green (income/positive)
+UIStyle.NEON_RED   = Color3.fromRGB(184, 98, 86)     -- muted terracotta (sell/close)
+UIStyle.NEON_BLUE  = Color3.fromRGB(108, 130, 138)   -- muted slate-blue (place/pickup)
+UIStyle.TEXT       = Color3.fromRGB(245, 249, 233)   -- Ivory
+UIStyle.TEXT_DIM   = Color3.fromRGB(205, 209, 188)
 
 -- Primitives ---------------------------------------------------------------
 function UIStyle.corner(parent: Instance, radius: number): UICorner
@@ -73,19 +75,19 @@ function UIStyle.chipIcon(size: number): Frame
 	chip.BackgroundColor3 = UIStyle.GOLD
 	chip.BorderSizePixel = 0
 	UIStyle.round(chip)
-	UIStyle.gradient(chip, Color3.fromRGB(255, 224, 120), UIStyle.GOLD_DEEP, 90)
-	UIStyle.stroke(chip, Color3.fromRGB(150, 100, 10), math.max(1, size * 0.09))
+	UIStyle.gradient(chip, Color3.fromRGB(228, 212, 142), UIStyle.GOLD_DEEP, 90)
+	UIStyle.stroke(chip, Color3.fromRGB(140, 120, 64), math.max(1, size * 0.09))
 
 	-- Inner ring gives it the poker-chip read.
 	local inner = Instance.new("Frame")
 	inner.Name = "Inner"
 	inner.Size = UDim2.fromScale(0.5, 0.5)
 	inner.Position = UDim2.fromScale(0.25, 0.25)
-	inner.BackgroundColor3 = Color3.fromRGB(255, 238, 175)
+	inner.BackgroundColor3 = Color3.fromRGB(236, 226, 168)
 	inner.BorderSizePixel = 0
 	inner.Parent = chip
 	UIStyle.round(inner)
-	UIStyle.stroke(inner, Color3.fromRGB(195, 145, 30), math.max(1, size * 0.05))
+	UIStyle.stroke(inner, Color3.fromRGB(160, 140, 82), math.max(1, size * 0.05))
 	return chip
 end
 
@@ -98,12 +100,12 @@ function UIStyle.toggleButton(props): TextButton
 	btn.Name = props.name
 	btn.Size = props.size or UDim2.fromOffset(154, 50)
 	btn.Position = props.position
-	btn.BackgroundColor3 = Color3.fromRGB(56, 44, 82)
+	btn.BackgroundColor3 = Color3.fromRGB(82, 95, 92)
 	btn.AutoButtonColor = false
 	btn.Text = ""
 	btn.BorderSizePixel = 0
 	UIStyle.corner(btn, 14)
-	UIStyle.gradient(btn, Color3.fromRGB(70, 54, 100), Color3.fromRGB(42, 32, 62), 90)
+	UIStyle.gradient(btn, Color3.fromRGB(96, 111, 110), Color3.fromRGB(70, 82, 80), 90)
 	local s = UIStyle.stroke(btn, props.accent, 2)
 
 	-- A colored rounded icon-chip on the left in place of an emoji.
@@ -134,7 +136,7 @@ function UIStyle.toggleButton(props): TextButton
 	lbl.Parent = btn
 
 	btn.MouseEnter:Connect(function()
-		TweenService:Create(s, TweenInfo.new(0.15), { Thickness = 3, Color = UIStyle.GOLD_LIGHT }):Play()
+		TweenService:Create(s, TweenInfo.new(0.15), { Thickness = 3, Color = UIStyle.ACCENT_LT }):Play()
 	end)
 	btn.MouseLeave:Connect(function()
 		TweenService:Create(s, TweenInfo.new(0.15), { Thickness = 2, Color = props.accent }):Play()
@@ -151,18 +153,18 @@ function UIStyle.closeButton(size: number): TextButton
 	btn.Size = UDim2.fromOffset(size, size)
 	btn.Text = ""
 	btn.AutoButtonColor = false
-	btn.BackgroundColor3 = Color3.fromRGB(48, 34, 66)
+	btn.BackgroundColor3 = UIStyle.BG_DARK
 	btn.BorderSizePixel = 0
 	btn.ZIndex = 6
 	UIStyle.corner(btn, math.floor(size / 3))
-	UIStyle.stroke(btn, Color3.fromRGB(130, 100, 170), 1.5)
+	UIStyle.stroke(btn, UIStyle.ACCENT, 1.5)
 
 	for _, rot in { 45, -45 } do
 		local bar = Instance.new("Frame")
 		bar.AnchorPoint = Vector2.new(0.5, 0.5)
 		bar.Position = UDim2.fromScale(0.5, 0.5)
 		bar.Size = UDim2.new(0, math.floor(size * 0.5), 0, math.max(2, math.floor(size * 0.14)))
-		bar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		bar.BackgroundColor3 = UIStyle.TEXT
 		bar.BorderSizePixel = 0
 		bar.Rotation = rot
 		bar.ZIndex = 7
@@ -174,7 +176,7 @@ function UIStyle.closeButton(size: number): TextButton
 		TweenService:Create(btn, TweenInfo.new(0.12), { BackgroundColor3 = UIStyle.NEON_RED }):Play()
 	end)
 	btn.MouseLeave:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.12), { BackgroundColor3 = Color3.fromRGB(48, 34, 66) }):Play()
+		TweenService:Create(btn, TweenInfo.new(0.12), { BackgroundColor3 = UIStyle.BG_DARK }):Play()
 	end)
 	return btn
 end

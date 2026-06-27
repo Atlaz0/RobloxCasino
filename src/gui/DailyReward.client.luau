@@ -74,21 +74,18 @@ panel.Parent = screenGui
 do
 	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 18); c.Parent = panel
 	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, BG_DARK),
-		ColorSequenceKeypoint.new(1, BG_PANEL),
-	})
+	g.Color = ColorSequence.new(UIStyle.PANEL_TOP, UIStyle.PANEL_BOTTOM)
 	g.Rotation = 180
 	g.Parent = panel
-	local s = Instance.new("UIStroke"); s.Color = GOLD; s.Thickness = 1.5; s.Parent = panel
+	local s = Instance.new("UIStroke"); s.Color = UIStyle.ACCENT; s.Thickness = 1.5; s.Parent = panel
 end
 
--- Header bar
+-- Header bar (solid)
 local header = Instance.new("Frame")
 header.Name = "Header"
 header.Size = UDim2.new(1, 0, 0, 50)
 header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = Color3.fromRGB(200, 120, 15)
+header.BackgroundColor3 = UIStyle.HEADER
 header.BorderSizePixel = 0
 header.ZIndex = 2
 header.Parent = panel
@@ -97,24 +94,17 @@ do
 	local cover = Instance.new("Frame")
 	cover.Size = UDim2.new(1, 0, 0, 18)
 	cover.Position = UDim2.new(0, 0, 1, -18)
-	cover.BackgroundColor3 = Color3.fromRGB(200, 120, 15)
+	cover.BackgroundColor3 = UIStyle.HEADER
 	cover.BorderSizePixel = 0
 	cover.ZIndex = 2
 	cover.Parent = header
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 150, 20)),
-		ColorSequenceKeypoint.new(1, GOLD),
-	})
-	g.Rotation = 0
-	g.Parent = header
 end
 local headerTitle = Instance.new("TextLabel")
 headerTitle.Size = UDim2.new(1, -52, 1, 0)
 headerTitle.Position = UDim2.new(0, 26, 0, 0)
 headerTitle.BackgroundTransparency = 1
 headerTitle.Text = "DAILY REWARD"
-headerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+headerTitle.TextColor3 = UIStyle.TEXT
 headerTitle.TextScaled = true
 UIStyle.maxText(headerTitle, 24)
 headerTitle.Font = Enum.Font.GothamBlack
@@ -145,16 +135,16 @@ local streakDots = {}
 for i = 1, 7 do
 	local dot = Instance.new("Frame")
 	dot.Size = UDim2.new(0, 24, 0, 24)
-	dot.BackgroundColor3 = Color3.fromRGB(50, 40, 60)
+	dot.BackgroundColor3 = Color3.fromRGB(70, 82, 78)
 	dot.BorderSizePixel = 0
 	dot.Parent = dotsRow
 	local dc = Instance.new("UICorner"); dc.CornerRadius = UDim.new(1, 0); dc.Parent = dot
-	local ds = Instance.new("UIStroke"); ds.Color = Color3.fromRGB(80, 70, 90); ds.Thickness = 1.5; ds.Parent = dot
+	local ds = Instance.new("UIStroke"); ds.Color = Color3.fromRGB(110, 122, 116); ds.Thickness = 1.5; ds.Parent = dot
 	local dl = Instance.new("TextLabel")
 	dl.Size = UDim2.new(1, 0, 1, 0)
 	dl.BackgroundTransparency = 1
 	dl.Text = tostring(i)
-	dl.TextColor3 = Color3.fromRGB(120, 110, 130)
+	dl.TextColor3 = UIStyle.TEXT_DIM
 	dl.TextScaled = true
 	dl.Font = Enum.Font.GothamBold
 	dl.Parent = dot
@@ -199,9 +189,13 @@ local claimBtn = Instance.new("TextButton")
 claimBtn.Name = "ClaimButton"
 claimBtn.Size = UDim2.new(1, -24, 0, 56)
 claimBtn.Position = UDim2.new(0, 12, 1, -68)
-claimBtn.BackgroundColor3 = Color3.fromRGB(0, 160, 60)
+local CLAIM_READY    = Color3.fromRGB(96, 150, 96)
+local CLAIM_READY_LT = Color3.fromRGB(124, 178, 116)
+local CLAIM_WAIT     = Color3.fromRGB(70, 82, 78)
+
+claimBtn.BackgroundColor3 = CLAIM_READY
 claimBtn.Text = "Claim Reward"
-claimBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+claimBtn.TextColor3 = UIStyle.TEXT
 claimBtn.TextScaled = true
 claimBtn.Font = Enum.Font.GothamBold
 claimBtn.BorderSizePixel = 0
@@ -209,10 +203,7 @@ claimBtn.AutoButtonColor = false
 claimBtn.Parent = panel
 UIStyle.maxText(claimBtn, 20)
 local claimGradient = Instance.new("UIGradient")
-claimGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 60)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 220, 100)),
-})
+claimGradient.Color = ColorSequence.new(CLAIM_READY, CLAIM_READY_LT)
 claimGradient.Rotation = 90
 claimGradient.Parent = claimBtn
 do
@@ -220,28 +211,11 @@ do
 	local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 10); pad.PaddingBottom = UDim.new(0, 10); pad.Parent = claimBtn
 end
 
+-- Static stroke when claimable (no pulsing).
 local claimStroke = Instance.new("UIStroke")
-claimStroke.Color = NEON_GREEN
+claimStroke.Color = UIStyle.ACCENT_LT
 claimStroke.Thickness = 0
 claimStroke.Parent = claimBtn
-
-local pulseConn
-local function startClaimPulse()
-	if pulseConn then return end
-	claimStroke.Thickness = 2
-	pulseConn = task.spawn(function()
-		while true do
-			TweenService:Create(claimStroke, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 3}):Play()
-			task.wait(0.7)
-			TweenService:Create(claimStroke, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 1.5}):Play()
-			task.wait(0.7)
-		end
-	end)
-end
-local function stopClaimPulse()
-	if pulseConn then task.cancel(pulseConn); pulseConn = nil end
-	claimStroke.Thickness = 0
-end
 
 local function updateStreakDots()
 	for i, d in streakDots do
@@ -249,22 +223,22 @@ local function updateStreakDots()
 			d.frame.BackgroundColor3 = GOLD
 			d.stroke.Color = GOLD_LIGHT
 			d.stroke.Thickness = 2
-			d.label.TextColor3 = Color3.fromRGB(20, 10, 0)
+			d.label.TextColor3 = UIStyle.BG_DARK
 		elseif i == status.streak and not status.canClaim then
 			d.frame.BackgroundColor3 = GOLD
 			d.stroke.Color = GOLD_LIGHT
 			d.stroke.Thickness = 2
-			d.label.TextColor3 = Color3.fromRGB(20, 10, 0)
+			d.label.TextColor3 = UIStyle.BG_DARK
 		elseif i == (status.streak + 1) or (status.canClaim and i == status.streak + 1) then
-			d.frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+			d.frame.BackgroundColor3 = UIStyle.BG_DARK
 			d.stroke.Color = NEON_GREEN
 			d.stroke.Thickness = 2.5
 			d.label.TextColor3 = NEON_GREEN
 		else
-			d.frame.BackgroundColor3 = Color3.fromRGB(50, 40, 60)
-			d.stroke.Color = Color3.fromRGB(80, 70, 90)
+			d.frame.BackgroundColor3 = Color3.fromRGB(70, 82, 78)
+			d.stroke.Color = Color3.fromRGB(110, 122, 116)
 			d.stroke.Thickness = 1.5
-			d.label.TextColor3 = Color3.fromRGB(120, 110, 130)
+			d.label.TextColor3 = UIStyle.TEXT_DIM
 		end
 	end
 end
@@ -276,20 +250,14 @@ local function refreshUI()
 
 	if status.canClaim then
 		claimBtn.Text = "Claim Reward"
-		claimGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 60)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 220, 100)),
-		})
+		claimGradient.Color = ColorSequence.new(CLAIM_READY, CLAIM_READY_LT)
+		claimStroke.Thickness = 2
 		claimBtn.Active = true
 		claimBtn.AutoButtonColor = false
-		startClaimPulse()
 	else
-		stopClaimPulse()
 		claimBtn.Text = "Next: " .. formatCountdown(status.secondsRemaining)
-		claimGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(55, 50, 65)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 50, 65)),
-		})
+		claimGradient.Color = ColorSequence.new(CLAIM_WAIT, CLAIM_WAIT)
+		claimStroke.Thickness = 0
 		claimBtn.Active = false
 		claimBtn.AutoButtonColor = false
 	end
@@ -322,7 +290,7 @@ claimBtn.MouseButton1Click:Connect(function()
 	claimBtn.Active = false
 	claimBtn.AutoButtonColor = false
 	claimBtn.Text = "Claiming..."
-	stopClaimPulse()
+	claimStroke.Thickness = 0
 	local ok, result = pcall(function()
 		return Remotes.RequestDailyReward:InvokeServer()
 	end)

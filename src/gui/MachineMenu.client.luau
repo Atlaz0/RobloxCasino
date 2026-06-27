@@ -69,7 +69,7 @@ local header = Instance.new("Frame")
 header.Name = "Header"
 header.Size = UDim2.new(1, 0, 0, 48)
 header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = ACCENT
+header.BackgroundColor3 = UIStyle.HEADER
 header.BorderSizePixel = 0
 header.ZIndex = 2
 header.Parent = panel
@@ -78,17 +78,10 @@ do
 	local cover = Instance.new("Frame")
 	cover.Size = UDim2.new(1, 0, 0, 18)
 	cover.Position = UDim2.new(0, 0, 1, -18)
-	cover.BackgroundColor3 = ACCENT
+	cover.BackgroundColor3 = UIStyle.HEADER
 	cover.BorderSizePixel = 0
 	cover.ZIndex = 2
 	cover.Parent = header
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, ACCENT),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 10, 60)),
-	})
-	g.Rotation = 0
-	g.Parent = header
 end
 
 local title = Instance.new("TextLabel")
@@ -96,7 +89,7 @@ title.Size = UDim2.new(1, -50, 1, 0)
 title.Position = UDim2.new(0, 14, 0, 0)
 title.BackgroundTransparency = 1
 title.Text = "Machine"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextColor3 = UIStyle.TEXT
 title.TextScaled = true
 title.Font = Enum.Font.GothamBlack
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -128,7 +121,7 @@ local pickupBtn = Instance.new("TextButton")
 pickupBtn.Name = "PickupButton"
 pickupBtn.Size = UDim2.new(1, -24, 0, 46)
 pickupBtn.Position = UDim2.new(0, 12, 0, 92)
-pickupBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 200)
+pickupBtn.BackgroundColor3 = UIStyle.NEON_BLUE
 pickupBtn.BorderSizePixel = 0
 pickupBtn.Text = "Pick Up"
 pickupBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -141,18 +134,18 @@ UIStyle.maxText(pickupBtn, 18)
 do
 	local g = Instance.new("UIGradient")
 	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 80, 200)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 120, 255)),
+		ColorSequenceKeypoint.new(0, UIStyle.NEON_BLUE),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(132, 154, 162)),
 	})
 	g.Rotation = 90
 	g.Parent = pickupBtn
 	local pad = Instance.new("UIPadding"); pad.PaddingTop = UDim.new(0, 10); pad.PaddingBottom = UDim.new(0, 10); pad.Parent = pickupBtn
 end
 pickupBtn.MouseEnter:Connect(function()
-	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(70, 110, 235)}):Play()
+	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(140, 162, 170)}):Play()
 end)
 pickupBtn.MouseLeave:Connect(function()
-	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(40, 80, 200)}):Play()
+	TweenService:Create(pickupBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.NEON_BLUE}):Play()
 end)
 
 -- Sell button
@@ -160,10 +153,10 @@ local sellBtn = Instance.new("TextButton")
 sellBtn.Name = "SellButton"
 sellBtn.Size = UDim2.new(1, -24, 0, 46)
 sellBtn.Position = UDim2.new(0, 12, 0, 146)
-sellBtn.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+sellBtn.BackgroundColor3 = UIStyle.NEON_RED
 sellBtn.BorderSizePixel = 0
 sellBtn.Text = "Sell"
-sellBtn.TextColor3 = GOLD_LIGHT
+sellBtn.TextColor3 = UIStyle.TEXT
 sellBtn.Font = Enum.Font.GothamBold
 sellBtn.TextScaled = true
 sellBtn.AutoButtonColor = false
@@ -173,8 +166,8 @@ UIStyle.maxText(sellBtn, 18)
 do
 	local g = Instance.new("UIGradient")
 	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 30, 30)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 60, 60)),
+		ColorSequenceKeypoint.new(0, UIStyle.NEON_RED),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(206, 120, 108)),
 	})
 	g.Rotation = 90
 	g.Parent = sellBtn
@@ -188,10 +181,10 @@ sellChip.Position = UDim2.new(1, -64, 0.5, 0)
 sellChip.ZIndex = sellBtn.ZIndex + 1
 sellChip.Parent = sellBtn
 sellBtn.MouseEnter:Connect(function()
-	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(210, 50, 50)}):Play()
+	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(206, 120, 108)}):Play()
 end)
 sellBtn.MouseLeave:Connect(function()
-	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(180, 30, 30)}):Play()
+	TweenService:Create(sellBtn, TweenInfo.new(0.12), {BackgroundColor3 = UIStyle.NEON_RED}):Play()
 end)
 
 local function closeMenu()

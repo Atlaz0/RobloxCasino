@@ -72,7 +72,7 @@ local header = Instance.new("Frame")
 header.Name = "Header"
 header.Size = UDim2.new(1, 0, 0, 48)
 header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = ACCENT
+header.BackgroundColor3 = UIStyle.HEADER
 header.BorderSizePixel = 0
 header.ZIndex = 2
 header.Parent = panel
@@ -81,17 +81,10 @@ do
 	local cover = Instance.new("Frame")
 	cover.Size = UDim2.new(1, 0, 0, 18)
 	cover.Position = UDim2.new(0, 0, 1, -18)
-	cover.BackgroundColor3 = ACCENT
+	cover.BackgroundColor3 = UIStyle.HEADER
 	cover.BorderSizePixel = 0
 	cover.ZIndex = 2
 	cover.Parent = header
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, ACCENT),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 10, 60)),
-	})
-	g.Rotation = 0
-	g.Parent = header
 end
 
 local headerTitle = Instance.new("TextLabel")
@@ -99,7 +92,7 @@ headerTitle.Size = UDim2.new(0.6, 0, 1, 0)
 headerTitle.Position = UDim2.new(0, 14, 0, 0)
 headerTitle.BackgroundTransparency = 1
 headerTitle.Text = "STASH"
-headerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+headerTitle.TextColor3 = UIStyle.TEXT
 headerTitle.TextScaled = true
 UIStyle.maxText(headerTitle, 24)
 headerTitle.Font = Enum.Font.GothamBlack
@@ -111,7 +104,7 @@ local itemCountBadge = Instance.new("TextLabel")
 itemCountBadge.Name = "ItemCount"
 itemCountBadge.Size = UDim2.new(0, 38, 0, 24)
 itemCountBadge.Position = UDim2.new(1, -90, 0.5, -12)
-itemCountBadge.BackgroundColor3 = Color3.fromRGB(40, 20, 70)
+itemCountBadge.BackgroundColor3 = UIStyle.PANEL_BOTTOM
 itemCountBadge.Text = "0"
 itemCountBadge.TextColor3 = GOLD
 itemCountBadge.TextScaled = true
@@ -150,7 +143,7 @@ emptyLabel.Size = UDim2.new(1, -40, 0, 30)
 emptyLabel.Position = UDim2.new(0, 20, 0.35, 38)
 emptyLabel.BackgroundTransparency = 1
 emptyLabel.Text = "Nothing in your stash yet."
-emptyLabel.TextColor3 = Color3.fromRGB(100, 80, 130)
+emptyLabel.TextColor3 = UIStyle.TEXT_DIM
 emptyLabel.TextScaled = true
 UIStyle.maxText(emptyLabel, 16)
 emptyLabel.Font = Enum.Font.Gotham
@@ -201,12 +194,9 @@ local function rebuild()
 			card.Parent = scroll
 			do
 				corner(card, 12)
-				stroke(card, Color3.fromRGB(50, 30, 80), 1)
+				stroke(card, Color3.fromRGB(74, 86, 82), 1)
 				local g = Instance.new("UIGradient")
-				g.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 22, 55)),
-					ColorSequenceKeypoint.new(1, CARD_BG),
-				})
+				g.Color = ColorSequence.new(UIStyle.PANEL_BOTTOM, CARD_BG)
 				g.Rotation = 0
 				g.Parent = card
 			end
@@ -226,7 +216,7 @@ local function rebuild()
 			nameLabel.Position = UDim2.new(0, 14, 0, 0)
 			nameLabel.BackgroundTransparency = 1
 			nameLabel.Text = def.displayName
-			nameLabel.TextColor3 = Color3.fromRGB(240, 230, 255)
+			nameLabel.TextColor3 = UIStyle.TEXT
 			nameLabel.Font = Enum.Font.GothamBold
 			nameLabel.TextScaled = true
 			UIStyle.maxText(nameLabel, 18)
@@ -243,7 +233,7 @@ local function rebuild()
 			local placeBtn = Instance.new("TextButton")
 			placeBtn.Size = UDim2.new(0, 72, 0, 36)
 			placeBtn.Position = UDim2.new(1, -158, 0.5, -18)
-			placeBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 200)
+			placeBtn.BackgroundColor3 = UIStyle.NEON_BLUE
 			placeBtn.BorderSizePixel = 0
 			placeBtn.Text = "Place"
 			placeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -256,24 +246,24 @@ local function rebuild()
 				corner(placeBtn, 9)
 				local g = Instance.new("UIGradient")
 				g.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 80, 200)),
-					ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 120, 255)),
+					ColorSequenceKeypoint.new(0, UIStyle.NEON_BLUE),
+					ColorSequenceKeypoint.new(1, Color3.fromRGB(132, 154, 162)),
 				})
 				g.Rotation = 90
 				g.Parent = placeBtn
 			end
 			placeBtn.MouseEnter:Connect(function()
-				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(70, 110, 235)}):Play()
+				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(140, 162, 170)}):Play()
 			end)
 			placeBtn.MouseLeave:Connect(function()
-				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(40, 80, 200)}):Play()
+				TweenService:Create(placeBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.NEON_BLUE}):Play()
 			end)
 
 			-- Sell button
 			local sellBtn = Instance.new("TextButton")
 			sellBtn.Size = UDim2.new(0, 80, 0, 36)
 			sellBtn.Position = UDim2.new(1, -80, 0.5, -18)
-			sellBtn.BackgroundColor3 = Color3.fromRGB(130, 95, 0)
+			sellBtn.BackgroundColor3 = UIStyle.GOLD_DEEP
 			sellBtn.BorderSizePixel = 0
 			sellBtn.Text = ""
 			sellBtn.AutoButtonColor = false
@@ -282,8 +272,8 @@ local function rebuild()
 				corner(sellBtn, 9)
 				local g = Instance.new("UIGradient")
 				g.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 100, 0)),
-					ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 145, 0)),
+					ColorSequenceKeypoint.new(0, UIStyle.GOLD_DEEP),
+					ColorSequenceKeypoint.new(1, UIStyle.GOLD),
 				})
 				g.Rotation = 90
 				g.Parent = sellBtn
@@ -300,7 +290,7 @@ local function rebuild()
 			sellPrice.AnchorPoint = Vector2.new(0, 0.5)
 			sellPrice.BackgroundTransparency = 1
 			sellPrice.Text = FormatNumber.format(GameConfig.machineSellValue(def))
-			sellPrice.TextColor3 = GOLD_LIGHT
+			sellPrice.TextColor3 = UIStyle.BG_DARK
 			sellPrice.Font = Enum.Font.GothamBold
 			sellPrice.TextScaled = true
 			UIStyle.maxText(sellPrice, 16)
@@ -308,10 +298,10 @@ local function rebuild()
 			sellPrice.ZIndex = 3
 			sellPrice.Parent = sellBtn
 			sellBtn.MouseEnter:Connect(function()
-				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(180, 130, 0)}):Play()
+				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.GOLD}):Play()
 			end)
 			sellBtn.MouseLeave:Connect(function()
-				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(130, 95, 0)}):Play()
+				TweenService:Create(sellBtn, TweenInfo.new(0.1), {BackgroundColor3 = UIStyle.GOLD_DEEP}):Play()
 			end)
 
 			local capturedIndex = index
